@@ -22,12 +22,12 @@ Essentially a command line interface for automating a bunch of _low value work_.
   - Reserve three static IP's: `gocd`, `preprod` and `prod`
   - Create a named network for your stack
   - Deploy two subnetworks:
-    - preprod: `10.37.64.0/19`
-    - prod: `10.35.96.0/19`
+    - preprod: `10.34.96.0/24`
+    - prod: `10.34.97.0/24`
   - Configure firewall rules for web apps
-  - Deploy a preprod kubernetes cluster, HA'd across `eu-west1-c` and `eu-west1-d` into the preprod subnet
-  - Deploy a prod kuberneters cluster in the same way, to the prod subnet
-  - Configure `slow` and `fast` storageclasses
+  - Deploy a preprod kubernetes cluster, HA'd across `eu-west1-c` and `eu-west1-d` into the preprod subnet, with a container range of `10.37.64.0/19`
+  - Deploy a prod kuberneters cluster in the same way, to the prod subnet, with a container range of `10.35.96.0/19`
+  - Configure `slow` and `fast` storageclasses for PersistentVolumeClaims
   - Create a separate application namespace, and config maps for each namespace 
   - Provision some persistent storage for GoCD server to persist outside of kubernetes clusters
   - Generate SSH and GPG keys for GoCD to interact with GitHub etc
