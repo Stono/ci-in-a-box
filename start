@@ -29,12 +29,12 @@ function validate_tools {
   EXPECTED_KUBECTL=1.5.3
   EXPECTED_GCLOUD=146.0.0
 
+  echo ""
+  bold "Checking tool versions..."
   ACTUAL_TERRAFORM=$(terraform --version | head -n 1 | awk '{print $2}' | cut -c2-)
   ACTUAL_KUBECTL=$(kubectl version --client --short | awk '{print $3}' | cut -c2-)
   ACTUAL_GCLOUD=$(gcloud --version | grep SDK | awk '{print $4}')
 
-  echo ""
-  bold "Checking tool versions..."
   version_check "$ACTUAL_KUBECTL" "$EXPECTED_KUBECTL" "kubectl"
   version_check "$ACTUAL_TERRAFORM" "$EXPECTED_TERRAFORM" "terraform"
   version_check "$ACTUAL_GCLOUD" "$EXPECTED_GCLOUD" "gcloud sdk"
@@ -290,33 +290,34 @@ env="${2:-}"
 
 validate_tools
 validate_environment_variables
-set_project
-echo ""
-echo " + Setup Complete!"
-echo ""
 
 case "$command" in
   build)
+    set_project
     do_infra $env
     do_infra_cleanup
     exit 0
     ;;
   deploy)
+    set_project
     do_deploy $env
     exit 0
     ;;
   destroy)
+    set_project
     do_infra_destroy $env
     do_infra_cleanup
     exit 0
     ;;
   configure)
+    set_project
     if [ "$env" = "preprod" ] || [ "$env" = "prod" ]; then
       kube_environment $env
     fi
     exit 0
     ;;
   bootstrap)
+    set_project
     do_infra "other"
     do_infra "networking"
     do_infra "preprod"
@@ -327,6 +328,7 @@ case "$command" in
     exit 0
     ;;
   nuke)
+    set_project
     do_infra_destroy "prod"
     do_infra_destroy "preprod"
     do_infra_destroy "networking"
