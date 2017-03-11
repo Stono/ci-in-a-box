@@ -1,0 +1,102 @@
+#!/bin/bash
+set -o pipefail
+set -o errexit
+
+ROOT=$(git rev-parse --show-toplevel)
+TEMP_DIR=$ROOT/.tmp
+mkdir -p $TEMP_DIR
+
+function display_usage_and_exit {
+  echo "Usage: $(basename "$0") <command>"
+  echo " - plan         [preprod | prod | networking]: plan infra changes and save it to file"
+  echo " - plan_destroy [preprod | prod | networking]: plan infra destroy and save it to file"
+  echo " - apply        [preprod | prod | networking]: apply changes to infra"
+  exit 1
+}
+
+function pop {
+  if [ ! "$(git stash list | grep -c infra | xargs)" = "0" ]; then
+    git stash pop "$(git stash list | grep infra | awk '{print $1}' | sed 's/\://g')"
+  fi
+}
+
+function unlock_repo {
+  git stash save infra
+  git-crypt unlock
+  pop
+}
+
+function tf {
+  pushd "$(dirname $0)/../terraform/$env" &>/dev/null
+  echo terraform $*
+  terraform $*
+  popd &>/dev/null
+}
+
+function update_terraform_modules {
+  tf get
+}
+
+function config_remote_state {
+  if ! gsutil ls gs://$TF_VAR_state_bucket &>/dev/null; then
+    echo "Terraform state bucket does not exist, creating..."
+    gsutil mb -c regional -l europe-west1 gs://$TF_VAR_state_bucket
+  fi
+  tf remote config -backend=gcs -pull=false -backend-config="bucket=$TF_VAR_state_bucket" \
+  -backend-config="path=$env/terraform.tfstate" -backend-config="project=$TF_VAR_gcp_project_name"
+}
+
+function plan_and_save {
+  PLAN_EXTRA_ARGS=$1
+  tf plan $PLAN_EXTRA_ARGS -out=.terraform/terraform.plan
+}
+
+function init {
+  config_remote_state
+}
+
+function plan {
+  update_terraform_modules
+  plan_and_save
+}
+
+function plan_destroy {
+  update_terraform_modules
+  plan_and_save "-destroy"
+}
+
+function apply {
+  tf apply .terraform/terraform.plan
+}
+
+function check_presence {
+  if [ -z $1 ] ; then
+    display_usage_and_exit
+  fi
+}
+
+command="${1:-}"
+env="${2:-}"
+
+check_presence $env
+init 
+#tf remote pull
+
+case "$command" in
+  plan)
+    plan $env
+    exit 0
+    ;;
+  plan_destroy)
+    plan_destroy $env
+    exit 0
+    ;;
+  apply)
+    apply
+    #tf remote push
+    exit 0
+    ;;
+  *)
+    display_usage_and_exit
+    ;;
+esac

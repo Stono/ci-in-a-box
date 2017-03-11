@@ -1,6 +1,5 @@
 gocd.master
 gocd.agent
-infra
 nginx
 .terraform
 .tmp
