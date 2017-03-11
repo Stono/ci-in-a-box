@@ -1,7 +1,16 @@
 #!/bin/bash
 set -e
-
 source scripts/common.sh
+
+if [ ! "$(uname -a | awk '{print $1}')" = "Linux" ]; then
+  bold "Sorry, you're not supported yet!"
+  echo "Unfortunately, I havent tested this script on any platform other than linux."
+  echo "I do not want you blaming me when it destroys your GCP setup."
+  echo ""
+  echo "A docker wrapper version will be coming soon though, so hold tight!"
+  exit 1
+fi
+
 export KUBECTL_NAMESPACE=default
 mkdir -p .tmp
 
