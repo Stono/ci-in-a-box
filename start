@@ -136,7 +136,8 @@ function validate_environment_variables {
   enforce_arg "STATE_BUCKET" "GCS Bucket to store state in"
   enforce_arg "NETWORK_NAME" "GCP Private Network Name"
   enforce_arg "GCP_PROJECT_NAME" "GCP Project Name"
-  enforce_arg "CLUSTER_PASSWORD" "The Kubernetes cluster password"
+  enforce_arg "PREPROD_CLUSTER_PASSWORD" "The Kubernetes preprod cluster password"
+  enforce_arg "PROD_CLUSTER_PASSWORD" "The Kubernetes prod cluster password"
 
   enforce_arg "GOCD_USERNAME" "Username to login to GOCD with"
   enforce_arg "GOCD_PASSWORD" "Password to login to GOCD with"

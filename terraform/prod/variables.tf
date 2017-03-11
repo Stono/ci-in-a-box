@@ -1,4 +1,4 @@
-variable "cluster_password" {
+variable "prod_cluster_password" {
   description = "The password for logging into kubernetes ui"
 }
 
