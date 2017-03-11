@@ -14,14 +14,14 @@ An open sourced version of the continuous integration and delivery setup I use o
   - Deploy a preprod kubernetes cluster, HA'd across eu-west1-c and eu-west1-d into the preprod subnet
   - Deploy a prod kuberneters cluster in the same way, to the prod subnet
   - Provising some persistent storage for GoCD server
-  - Deploy GoCD Master (in docker), fronted with SSL (LetsEncrypt) via Nginx
-  - Deploy Special GCP tweaked GoCD Agents (also in docker, and scalable) for the preprod and prod environments
+  - Deploy [GoCD Master](https://github.com/Stono/gocd-master) (in docker), fronted with SSL (LetsEncrypt) via Nginx
+  - Deploy [Special GCP tweaked GoCD Agents](https://github.com/Stono/gocd-agent) (also in docker, and scalable) for the preprod and prod environments
   - Make you a cup of tea.
 
 ... Just kidding about the last one, it won't make you a brew.  But with all this free time on your hands, you can totally make your own!
 
 ## But why?
-Are you once of those people that spends the first few weeks of any new engagement setting up your infrastructure (ips, firewalls, networking), Kubernetes, then installing your CI server (in my case, GoCD)?  I want to be able to kick off a docker/kubernetes/gcp project with the least amount of effort.
+Are you one of those people that spends the first few weeks of any new engagement setting up your infrastructure (ip's, firewalls, networking), Kubernetes, then installing your CI server (in my case, GoCD)?  I am, and I was tired of it.  I want to be able to kick off a docker/kubernetes/gcp project with the least amount of effort - and that's what this project is.
 
 ## Awesome, so what do I do?
 
@@ -54,7 +54,7 @@ GOCD_AGENT_KEY="some-super-secure-agent-key"
 ```
 
 ### Running `./start`
-The script will validate you have all the required bits and bobs, and if you don't - prompt you what to go.  My intention is to move this entire script into its own docker container soon too, so you wont need these dependencies on your host.  Plus, I built this on Linux, it probably won't work on Mac or Windows.
+The script will validate you have all the required bits and bobs, and if you don't - prompt you what to do.  My intention is to move this entire script into its own docker container soon too, so you wont need these dependencies on your host.  Plus, I built this on Linux, it probably won't work on Mac or Windows.
 
 ```
 $ ./start 
@@ -100,3 +100,5 @@ Usage: start <command>
  - bootstrap                                 Does all of the above, on a new GCP project
  - nuke                                      Destroy everything in one devastating blow
 ```
+
+If you're on a fresh setup, just run `./setup bootstrap`, wait a few minutes and then crack on building the stuff that matters.
