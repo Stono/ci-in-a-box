@@ -1,0 +1,69 @@
+#!/bin/bash
+set -e
+function toArray {
+  readarray RESULT < <($1 | tail -n +2)
+  echo " [i ] ${#RESULT[@]} results."
+}
+
+function cleanup_pools {
+  echo Gathering target pools...
+  toArray "gcloud compute target-pools list"
+  TP=("${RESULT[@]}")
+
+  echo Gathering instances...
+  toArray "gcloud compute instances list --uri"
+  INSTANCES=("${RESULT[@]}")
+
+  echo "Cleaning up Target Pools (LoadBalancers)..."
+  # Loop through each of the target pools and see if they have VMs
+  for pool in "${TP[@]}"
+  do
+    :
+    POOLID=$(echo $pool | awk '{print $1}')
+    REGION=$(echo $pool | awk '{print $2}')
+    echo Inspecting $POOLID...
+    readarray INSTANCES_IN_POOL < <(gcloud -q compute target-pools describe $POOLID --region $REGION | grep "\- " | awk '{print $2}')
+
+    FOUND_RUNNING=0
+    for instance in "${INSTANCES_IN_POOL[@]}"
+    do
+      :
+      if [[ " ${INSTANCES[@]} " =~ " ${instance} " ]]; then
+        FOUND_RUNNING=1
+      fi
+    done
+
+    if [ "$FOUND_RUNNING" = "0" ]; then
+      echo " [!!] $POOLID was found to contain no available instances."
+      gcloud -q compute forwarding-rules delete $POOLID --region $REGION 
+      gcloud -q compute target-pools delete $POOLID --region $REGION
+    else
+      echo " [OK] $POOLID has active associated instances"
+    fi
+  done
+}
+
+function cleanup_firewall_rules {
+  echo Gathering firewall rules...
+  toArray "gcloud compute firewall-rules list"
+  FW_RULES=("${RESULT[@]}")
+
+
+  echo Cleaning up Firewall Rules...
+  for rule in "${FW_RULES[@]}"
+  do
+    :
+    RULEID=$(echo $rule | awk '{print $1}')
+    TARGET_TAG=$(echo $rule | awk '{print $5}')
+    if [ ! "$TARGET_TAG" = "" ]; then
+      INSTANCES=`gcloud compute instances list --filter="tags.items~$TARGET_TAG" 2>/dev/null | wc -l`
+      if [ "$INSTANCES" = "0" ]; then
+        echo $TARGET_TAG has no matching instances!
+        gcloud -q compute firewall-rules delete $RULEID
+      fi
+    fi 
+  done
+}
+
+cleanup_pools
+cleanup_firewall_rules

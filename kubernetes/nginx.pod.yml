@@ -1,0 +1,48 @@
+apiVersion: extensions/v1beta1
+kind: Deployment
+metadata:
+  name: gocd-nginx
+  labels:
+    app: gocd-nginx
+    tier: ci
+spec:
+  replicas: 1
+  minReadySeconds: 30
+  revisionHistoryLimit: 1
+  strategy:
+    rollingUpdate:
+      maxUnavailable: 1
+      maxSurge: 1
+  template:
+    metadata:
+      labels:
+        app: gocd-nginx
+        tier: ci
+    spec:
+      securityContext:
+        fsGroup: 999
+      containers:
+      - name: gocd-nginx
+        image: stono/docker-nginx-letsencrypt:1.11.10-4 
+        imagePullPolicy: Always
+        securityContext:
+          privileged: true
+          capabilities:
+            add:
+              - SYS_ADMIN
+        env:
+        - name: LETSENCRYPT
+          valueFrom:
+            configMapKeyRef:
+              name: namespace-config
+              key: letsencrypt.enabled
+        - name: LETSENCRYPT_EMAIL
+          valueFrom:
+            configMapKeyRef:
+              name: namespace-config
+              key: letsencrypt.email
+        - name: HOST_GOCD
+          value: 'go.karlstoney.com,gocd-master.default.svc.cluster.local:8153,default_server'
+        ports:
+        - containerPort: 80
+        - containerPort: 443

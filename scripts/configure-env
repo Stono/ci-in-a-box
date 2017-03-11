@@ -1,0 +1,55 @@
+#!/bin/bash
+set -o pipefail
+set -o nounset
+set -o errexit
+
+ROOT=$(git rev-parse --show-toplevel)
+
+display_usage_and_exit() {
+  echo "Usage: $(basename "$0") [preprod | prod]"
+  exit 1
+}
+
+acquire_credentials_for_cluster() {
+  echo "Acquiring credentials for cluster $1"
+  gcloud container clusters get-credentials $1 \
+  --zone europe-west1-c --project $TF_VAR_gcp_project_name 
+}
+
+apply_common_configuration() {
+  for f in `find $ROOT/configuration/common -type f -name "*.yml"`; do
+    echo "Applying common configuration: $f"
+    pdata app deploy $f 
+  done
+}
+
+apply_environment_specific_configuration() {
+  for f in `find $ROOT/configuration/$env -type f -name "*.yml"`; do
+    echo "Applying environment configuration: $f"
+    pdata app deploy $f 
+  done
+}
+
+apply_kubernetes_configuration() {
+  apply_common_configuration
+  apply_environment_specific_configuration $1
+}
+
+running_on_go_agent() {
+  [[ `whoami` == 'go' ]]
+}
+
+readonly env="${1:-}"
+readonly cluster_name="$TF_VAR_stack_name-$env"
+
+if [ -z $env ] ; then
+  display_usage_and_exit
+fi
+
+if ! running_on_go_agent ; then
+  acquire_credentials_for_cluster $cluster_name
+else
+  echo "Running on a go agent, no need to acquire credentials"
+fi
+
+apply_kubernetes_configuration $env

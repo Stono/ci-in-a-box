@@ -1,0 +1,10 @@
+apiVersion: v1
+kind: Namespace
+metadata:
+  creationTimestamp: 2017-03-11T11:36:13Z
+  name: {{ENV.TF_VAR_stack_name}}
+spec:
+  finalizers:
+  - kubernetes
+status:
+  phase: Active

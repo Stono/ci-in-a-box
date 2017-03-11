@@ -1,0 +1,60 @@
+apiVersion: extensions/v1beta1
+kind: Deployment
+metadata:
+  name: gocd-agent-{{ENV.GOCD_AGENT_ENV}}
+  namespace: default
+  labels:
+    app: gocd-agent
+    tier: ci
+spec:
+  replicas: 1
+  minReadySeconds: 30
+  revisionHistoryLimit: 1
+  strategy:
+    rollingUpdate:
+      maxUnavailable: 1
+      maxSurge: 1
+  template:
+    metadata:
+      labels:
+        app: gocd-agent
+        tier: ci
+    spec:
+      volumes:
+      - name: docker-socket
+        hostPath:
+          path: /var/run/docker.sock
+      - name: ssh-keys
+        secret:
+          secretName: gocd.ssh
+      - name: gpg-key
+        secret:
+          secretName: goagent.gpg-key
+      containers:
+      - name: gocd-agent-{{ENV.GOCD_AGENT_ENV}}
+        image: stono/gocd-agent:latest
+        imagePullPolicy: Always
+        volumeMounts:
+        - name: docker-socket
+          mountPath: /var/run/docker.sock
+          readOnly: false
+        - name: ssh-keys
+          mountPath: /etc/goagent-ssh
+          readOnly: true
+        - name: gpg-key
+          mountPath: /etc/goagent-gpg
+          readOnly: true
+        env:
+        - name: AGENT_KEY
+          valueFrom:
+            secretKeyRef:
+              name: gocd.goagent-key
+              key: key
+        - name: GCP_PROJECT_NAME
+          value: "{{ENV.GCP_PROJECT_NAME}}"
+        - name: CLUSTER_NAME
+          value: "{{ENV.STACK_NAME}}-{{ENV.GOCD_AGENT_ENV}}"
+        - name: GO_SERVER
+          value: gocd-master
+        - name: AGENT_ENVIRONMENTS
+          value: "go,{{ENV.GOCD_AGENT_ENV}},{{ENV.STACK_NAME}}"

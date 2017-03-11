@@ -1,0 +1,100 @@
+apiVersion: extensions/v1beta1
+kind: Deployment
+metadata:
+  name: gocd-master
+spec:
+  replicas: 1
+  minReadySeconds: 30
+  revisionHistoryLimit: 1
+  strategy:
+    rollingUpdate:
+      maxUnavailable: 1
+      maxSurge: 1
+  template:
+    metadata:
+      labels:
+        app: gocd-master
+        tier: ci
+      annotations:
+          scheduler.alpha.kubernetes.io/affinity: >
+            {
+              "nodeAffinity": {
+                "requiredDuringSchedulingIgnoredDuringExecution": {
+                  "nodeSelectorTerms": [
+                    {
+                      "matchExpressions": [
+                        {
+                          "key": "failure-domain.beta.kubernetes.io/zone",
+                          "operator": "In",
+                          "values": ["europe-west1-c"]
+                        }
+                      ]
+                    }
+                  ]
+                }
+              }
+            }
+    spec:
+      securityContext:
+        fsGroup: 999
+      volumes:
+      - name: gocd-master
+        gcePersistentDisk:
+          pdName: {{ENV.STACK_NAME}}-gocd-master
+          fsType: ext4
+      - name: gocd-master-config
+        gcePersistentDisk:
+          pdName: {{ENV.STACK_NAME}}-gocd-master-config
+          fsType: ext4
+      - name: gocd-logs
+        emptyDir: {}
+      - name: go-users
+        secret:
+          secretName: gocd.users 
+      - name: ssh-keys
+        secret:
+          secretName: gocd.ssh 
+      containers:
+      - name: gocd-master
+        image: stono/gocd-master:latest 
+        imagePullPolicy: Always
+        readinessProbe:
+          httpGet:
+            path: /go
+            port: 8153
+          initialDelaySeconds: 5
+          timeoutSeconds: 1
+          periodSeconds: 5
+          failureThreshold: 30
+        livenessProbe:
+          httpGet:
+            path: /go
+            port: 8153
+          initialDelaySeconds: 30
+          timeoutSeconds: 3
+          periodSeconds: 10
+          failureThreshold: 3
+        env:
+        - name: AGENT_KEY
+          valueFrom:
+            secretKeyRef:
+              name: gocd.goagent-key
+              key: key
+        - name: MSG_TIME
+          value: '0'
+        volumeMounts:
+        - mountPath: /var/lib/go-server
+          name: gocd-master
+        - mountPath: /var/log/go-server
+          name: gocd-logs
+        - mountPath: /etc/go
+          name: gocd-master-config
+        - mountPath: /etc/go-files
+          name: go-users
+          readOnly: true
+        - name: ssh-keys
+          mountPath: /etc/gocd-ssh
+          readOnly: true
+        ports:
+        - containerPort: 8153
+        - containerPort: 8154

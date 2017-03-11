@@ -1,0 +1,11 @@
+gocd.master
+gocd.agent
+infra
+nginx
+.terraform
+.tmp
+tmp
+.ssh
+.gnupg
+*.swp
+.env

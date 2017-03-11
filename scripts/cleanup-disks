@@ -1,0 +1,19 @@
+#!/bin/bash
+set -e
+
+echo Tidying up disks which are not attached to anything...
+echo Gathering disks...
+readarray DISKS < <(gcloud compute disks list --filter='name ~ ^gke-' | tail -n +2)
+echo " [i ] ${#DISKS[@]} results."
+
+# Loop through each of the disks and see if they're being used
+for disk in "${DISKS[@]}"
+do
+  :
+  DISKID=$(echo $disk | awk '{print $1}')
+  ZONE=$(echo $disk | awk '{print $2}')
+  if ! gcloud compute disks describe $DISKID --zone $ZONE | grep users &>/dev/null; then
+    echo $DISKID is not attached!  Deleting...
+    gcloud -q compute disks delete $DISKID --zone $ZONE
+  fi
+done
