@@ -6,6 +6,7 @@ Welcome to __ci in a box__!
 ## What is this?
 An open sourced version of the continuous integration and delivery setup I use on a daily basis.  Essentially a command line interface for automating a bunch of _low value work_.  It will:
 
+  - Create a GCP bucket to store your terraform state in
   - Reserve three static ips, gocd, preprod and prod
   - Create a named network for your stack
   - Deploy two subnetworks:
