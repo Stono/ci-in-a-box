@@ -14,11 +14,17 @@ An open sourced version of the continuous integration and delivery setup I use o
   - Deploy a preprod kubernetes cluster, HA'd across eu-west1-c and eu-west1-d into the preprod subnet
   - Deploy a prod kuberneters cluster in the same way, to the prod subnet
   - Provising some persistent storage for GoCD server
-  - Deploy [GoCD Master](https://github.com/Stono/gocd-master) (in docker), fronted with SSL (LetsEncrypt) via Nginx
-  - Deploy [Special GCP tweaked GoCD Agents](https://github.com/Stono/gocd-agent) (also in docker, and scalable) for the preprod and prod environments
+  - Deploy [GoCD Master](https://github.com/Stono/gocd-master)
+  - Deploy [Special GCP tweaked GoCD Agents](https://github.com/Stono/gocd-agent), preload with `kubectl`, `gcloud`, `terraform` etc
+  - Deploy [Stono's Docker Nginx](https://github.com/Stono/docker-nginx-letsencrypt), which fronts your GoCD with a LetsEncrypt SSL certificate 
   - Make you a cup of tea.
 
 ... Just kidding about the last one, it won't make you a brew.  But with all this free time on your hands, you can totally make your own!
+
+## Which versions?
+
+  - GoCD: 17.2.0
+  - Kubernetes: 1.5.3
 
 ## But why?
 Are you one of those people that spends the first few weeks of any new engagement setting up your infrastructure (ip's, firewalls, networking), Kubernetes, then installing your CI server (in my case, GoCD)?  I am, and I was tired of it.  I want to be able to kick off a docker/kubernetes/gcp project with the least amount of effort - and that's what this project is.
