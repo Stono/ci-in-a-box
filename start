@@ -44,14 +44,14 @@ function validate_tools {
 function display_usage_and_exit {
   bold "Welcome to the all in one GCP EU Kubernetes deployment script."
   echo ""
-  echo "Usage: $(basename "$0") <command>"
-  echo " - build      [preprod | prod | networking]  Plan and Build one of these"
-  echo " - destroy    [preprod | prod | networking]  Destroy one of these"
-  echo " - configure  [preprod | prod]               Configure one of these"
-  echo " - deploy     [gocd-master | gocd-agents]    Deploy either the go master or agents"
+  echo "Usage: $(basename "$0") <command> [options]"
+  echo " - build      [preprod | prod | networking | other]  Plan and Build one of these"
+  echo " - destroy    [preprod | prod | networking | other]  Destroy one of these"
+  echo " - configure  [preprod | prod]                       Configure one of these"
+  echo " - deploy     [gocd-master | gocd-agents]            Deploy either the go master or agents"
   echo ""
-  echo " - bootstrap                                 Does all of the above, on a new GCP project"
-  echo " - nuke                                      Destroy everything in one devastating blow"
+  echo " - bootstrap                                         Does all of the above, on a new GCP project"
+  echo " - nuke                                              Destroy everything in one devastating blow"
   echo ""
   exit 1
 }
@@ -199,11 +199,6 @@ function deploy_gocd_master {
   kubectl create secret generic "gocd.ssh" --from-file=ssh-privatekey=.tmp/.ssh/id_rsa --from-file=ssh-publickey=.tmp/.ssh/id_rsa.pub
 
   echo ""
-  bold "Ensuring disks..."
-  ensure_disk "$STACK_NAME-gocd-master" "500GB"
-  ensure_disk "$STACK_NAME-gocd-master-config" "1GB"
-
-  echo ""
   bold "Deploying gocd master..."
   pdata app deploy kubernetes/master.pod.yml
 
@@ -322,6 +317,7 @@ case "$command" in
     exit 0
     ;;
   bootstrap)
+    do_infra "other"
     do_infra "networking"
     do_infra "preprod"
     do_deploy "gocd-master"
@@ -334,6 +330,7 @@ case "$command" in
     do_infra_destroy "prod"
     do_infra_destroy "preprod"
     do_infra_destroy "networking"
+    do_infra_destroy "other"
     echo ""
     bold "Nuke complete."
     exit 0
