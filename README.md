@@ -6,18 +6,18 @@ Welcome to __ci in a box__!
 ## What is this?
 An open sourced version of the continuous integration and delivery setup I use on a daily basis.  Essentially a command line interface for automating a bunch of _low value work_.  It will:
 
-  - Create a GCP bucket to store your terraform state in
-  - Reserve three static ips, gocd, preprod and prod
+  - Create a [GCP](https://cloud.google.com/compute/) bucket to store your terraform state in
+  - Reserve three static IP's: `gocd`, `preprod` and `prod`
   - Create a named network for your stack
   - Deploy two subnetworks:
     - preprod: `10.37.64.0/19`
     - prod: `10.35.96.0/19`
   - Configure firewall rules for web apps
-  - Deploy a preprod kubernetes cluster, HA'd across eu-west1-c and eu-west1-d into the preprod subnet
+  - Deploy a preprod kubernetes cluster, HA'd across `eu-west1-c` and `eu-west1-d` into the preprod subnet
   - Deploy a prod kuberneters cluster in the same way, to the prod subnet
   - Configure `slow` and `fast` storageclasses
-  - Create application separated config maps
-  - Provision some persistent storage for GoCD server
+  - Create a separate application namespace, and config maps for each namespace 
+  - Provision some persistent storage for GoCD server to persist outside of kubernetes clusters
   - Generate SSH and GPG keys for GoCD to interact with GitHub etc
   - Deploy [GoCD Master](https://github.com/Stono/gocd-master) to your preprod kubernetes cluster
   - Deploy 2x [Special GCP tweaked GoCD Agents](https://github.com/Stono/gocd-agent), preloaded with `kubectl`, `gcloud`, `terraform` etc
@@ -28,8 +28,8 @@ An open sourced version of the continuous integration and delivery setup I use o
 
 ## Which versions?
 
-  - GoCD: 17.2.0
-  - Kubernetes: 1.5.3
+  - [GoCD](https://github.com/Stono/gocd-master): 17.2.0
+  - [Kubernetes](https://github.com/kubernetes/kubernetes/): 1.5.3
 
 ## But why?
 Are you one of those people that spends the first few weeks of any new engagement setting up your infrastructure (ip's, firewalls, networking), Kubernetes, then installing your CI server (in my case, GoCD)?  I am, and I was tired of it.  I want to be able to kick off a docker/kubernetes/gcp project with the least amount of effort - and that's what this project is.
