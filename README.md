@@ -1,7 +1,7 @@
 # ci-in-a-box
 ![Logo](images/logo.png)
 
-Welcome to __ci in a box__!
+Welcome to __ci in a box__!  From an empty GCP project to a EU HA kubernetes CI/CD stack in about 6 minutes.
 
 ## What is this?
 An open sourced version of the docker continuous integration and delivery setup I use on a daily basis.  When I say CI/CD, I really do mean entirely docker based.  That is the go agents, despite being docker containers themselves, build applications as containers, use Google Container Registry as an artifact store to promote them up the pipeline.
