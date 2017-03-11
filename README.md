@@ -4,7 +4,17 @@
 Welcome to __ci in a box__!
 
 ## What is this?
-An open sourced version of the continuous integration and delivery setup I use on a daily basis.  Essentially a command line interface for automating a bunch of _low value work_.  It will:
+An open sourced version of the docker continuous integration and delivery setup I use on a daily basis.  When I say CI/CD, I really do mean entirely docker based.  That is the go agents, despite being docker containers themselves, build applications as containers, use Google Container Registry as an artifact store to promote them up the pipeline.
+
+This is a rather abstract example of the CI/CD flow this stack is designed to support:
+
+![CI](images/ci.png)
+
+## That's wonderful, but why this repository? 
+Are you one of those people that spends the first few weeks of any new engagement setting up your infrastructure (ip's, firewalls, networking), Kubernetes, then installing your CI server (in my case, GoCD)?  I am, and I was tired of it.  I want to be able to kick off a docker/kubernetes/gcp project with the least amount of effort - and that's what this project is.  I want to start working on the application as quickly as possible.
+
+## Cool, so again, specifically, what is this?
+Essentially a command line interface for automating a bunch of _low value work_.  It will:
 
   - Create a [GCP](https://cloud.google.com/compute/) bucket to store your terraform state in
   - Reserve three static IP's: `gocd`, `preprod` and `prod`
@@ -31,8 +41,6 @@ An open sourced version of the continuous integration and delivery setup I use o
   - [GoCD](https://github.com/Stono/gocd-master): 17.2.0
   - [Kubernetes](https://github.com/kubernetes/kubernetes/): 1.5.3
 
-## But why?
-Are you one of those people that spends the first few weeks of any new engagement setting up your infrastructure (ip's, firewalls, networking), Kubernetes, then installing your CI server (in my case, GoCD)?  I am, and I was tired of it.  I want to be able to kick off a docker/kubernetes/gcp project with the least amount of effort - and that's what this project is.
 
 ## Awesome, so what do I do?
 
