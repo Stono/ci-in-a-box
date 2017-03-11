@@ -13,9 +13,10 @@ An open sourced version of the continuous integration and delivery setup I use o
     - prod: `10.35.96.0/19`
   - Deploy a preprod kubernetes cluster, HA'd across eu-west1-c and eu-west1-d into the preprod subnet
   - Deploy a prod kuberneters cluster in the same way, to the prod subnet
-  - Provising some persistent storage for GoCD server
-  - Deploy [GoCD Master](https://github.com/Stono/gocd-master)
-  - Deploy [Special GCP tweaked GoCD Agents](https://github.com/Stono/gocd-agent), preload with `kubectl`, `gcloud`, `terraform` etc
+  - Provision some persistent storage for GoCD server
+  - Generate SSH and GPG keys for GoCD
+  - Deploy [GoCD Master](https://github.com/Stono/gocd-master) to your preprod kubernetes cluster
+  - Deploy 2x [Special GCP tweaked GoCD Agents](https://github.com/Stono/gocd-agent), preloaded with `kubectl`, `gcloud`, `terraform` etc
   - Deploy [Stono's Docker Nginx](https://github.com/Stono/docker-nginx-letsencrypt), which fronts your GoCD with a LetsEncrypt SSL certificate 
   - Make you a cup of tea.
 
