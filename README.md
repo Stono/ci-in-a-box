@@ -7,14 +7,17 @@ Welcome to __ci in a box__!
 An open sourced version of the continuous integration and delivery setup I use on a daily basis.  Essentially a command line interface for automating a bunch of _low value work_.  It will:
 
   - Reserve three static ips, gocd, preprod and prod
-  - Create a named network
+  - Create a named network for your stack
   - Deploy two subnetworks:
     - preprod: `10.37.64.0/19`
     - prod: `10.35.96.0/19`
+  - Configure firewall rules for web apps
   - Deploy a preprod kubernetes cluster, HA'd across eu-west1-c and eu-west1-d into the preprod subnet
   - Deploy a prod kuberneters cluster in the same way, to the prod subnet
+  - Configure `slow` and `fast` storageclasses
+  - Create application separated config maps
   - Provision some persistent storage for GoCD server
-  - Generate SSH and GPG keys for GoCD
+  - Generate SSH and GPG keys for GoCD to interact with GitHub etc
   - Deploy [GoCD Master](https://github.com/Stono/gocd-master) to your preprod kubernetes cluster
   - Deploy 2x [Special GCP tweaked GoCD Agents](https://github.com/Stono/gocd-agent), preloaded with `kubectl`, `gcloud`, `terraform` etc
   - Deploy [Stono's Docker Nginx](https://github.com/Stono/docker-nginx-letsencrypt), which fronts your GoCD with a LetsEncrypt SSL certificate 
@@ -108,4 +111,317 @@ Usage: start <command>
  - nuke                                      Destroy everything in one devastating blow
 ```
 
-If you're on a fresh setup, just run `./setup bootstrap`, wait a few minutes and then crack on building the stuff that matters.
+If you're on a fresh setup, just run `./setup bootstrap`, wait a few minutes and then crack on building the stuff that matters.  You'll get something like this:
+
+```
+$ ./start bootstrap
+Checking for cluster...
+Planning the build...
+Remote configuration updated
+Remote state configured and pulled.
+Refreshing Terraform state in-memory prior to plan...
+The refreshed state will be used to calculate this plan, but
+will not be persisted to local or remote state storage.
+
+google_compute_network.network: Refreshing state... (ID: testing-poc-network)
+google_compute_address.preprod: Refreshing state... (ID: testing-preprod)
+google_compute_address.gocd: Refreshing state... (ID: testing-gocd)
+google_compute_address.prod: Refreshing state... (ID: testing-prod)
+google_compute_firewall.web-ports: Refreshing state... (ID: testing-web-ports)
+google_compute_firewall.standard-ports: Refreshing state... (ID: testing-standard-ports)
+
++ google_compute_address.gocd
+    address:   "<computed>"
+    name:      "testing-gocd"
+    region:    "europe-west1"
+    self_link: "<computed>"
+
++ google_compute_address.preprod
+    address:   "<computed>"
+    name:      "testing-preprod"
+    region:    "europe-west1"
+    self_link: "<computed>"
+
++ google_compute_address.prod
+    address:   "<computed>"
+    name:      "testing-prod"
+    region:    "europe-west1"
+    self_link: "<computed>"
+
++ google_compute_firewall.standard-ports
+    allow.#:                   "2"
+    allow.1367131964.ports.#:  "0"
+    allow.1367131964.protocol: "icmp"
+    allow.803338340.ports.#:   "1"
+    allow.803338340.ports.0:   "22"
+    allow.803338340.protocol:  "tcp"
+    name:                      "testing-standard-ports"
+    network:                   "testing-poc-network"
+    project:                   "<computed>"
+    self_link:                 "<computed>"
+    source_ranges.#:           "1"
+    source_ranges.1080289494:  "0.0.0.0/0"
+
++ google_compute_firewall.web-ports
+    allow.#:                   "1"
+    allow.1250112605.ports.#:  "2"
+    allow.1250112605.ports.0:  "80"
+    allow.1250112605.ports.1:  "443"
+    allow.1250112605.protocol: "tcp"
+    name:                      "testing-web-ports"
+    network:                   "testing-poc-network"
+    project:                   "<computed>"
+    self_link:                 "<computed>"
+    source_tags.#:             "2"
+    source_tags.1936433573:    "https-server"
+    source_tags.988335155:     "http-server"
+
++ google_compute_network.network
+    gateway_ipv4: "<computed>"
+    name:         "testing-poc-network"
+    self_link:    "<computed>"
+
+
+Plan: 6 to add, 0 to change, 0 to destroy.
+Applying terraform plan...
+Remote configuration updated
+Remote state configured and pulled.
+google_compute_address.preprod: Creating...
+  address:   "" => "<computed>"
+  name:      "" => "testing-preprod"
+  region:    "" => "europe-west1"
+  self_link: "" => "<computed>"
+google_compute_address.prod: Creating...
+  address:   "" => "<computed>"
+  name:      "" => "testing-prod"
+  region:    "" => "europe-west1"
+  self_link: "" => "<computed>"
+google_compute_network.network: Creating...
+  gateway_ipv4: "" => "<computed>"
+  name:         "" => "testing-poc-network"
+  self_link:    "" => "<computed>"
+google_compute_address.gocd: Creating...
+  address:   "" => "<computed>"
+  name:      "" => "testing-gocd"
+  region:    "" => "europe-west1"
+  self_link: "" => "<computed>"
+google_compute_address.preprod: Creation complete
+google_compute_address.gocd: Creation complete
+google_compute_address.prod: Creation complete
+google_compute_network.network: Creation complete
+google_compute_firewall.web-ports: Creating...
+  allow.#:                   "" => "1"
+  allow.1250112605.ports.#:  "" => "2"
+  allow.1250112605.ports.0:  "" => "80"
+  allow.1250112605.ports.1:  "" => "443"
+  allow.1250112605.protocol: "" => "tcp"
+  name:                      "" => "testing-web-ports"
+  network:                   "" => "testing-poc-network"
+  project:                   "" => "<computed>"
+  self_link:                 "" => "<computed>"
+  source_tags.#:             "" => "2"
+  source_tags.1936433573:    "" => "https-server"
+  source_tags.988335155:     "" => "http-server"
+google_compute_firewall.standard-ports: Creating...
+  allow.#:                   "" => "2"
+  allow.1367131964.ports.#:  "" => "0"
+  allow.1367131964.protocol: "" => "icmp"
+  allow.803338340.ports.#:   "" => "1"
+  allow.803338340.ports.0:   "" => "22"
+  allow.803338340.protocol:  "" => "tcp"
+  name:                      "" => "testing-standard-ports"
+  network:                   "" => "testing-poc-network"
+  project:                   "" => "<computed>"
+  self_link:                 "" => "<computed>"
+  source_ranges.#:           "" => "1"
+  source_ranges.1080289494:  "" => "0.0.0.0/0"
+google_compute_firewall.web-ports: Creation complete
+google_compute_firewall.standard-ports: Creation complete
+
+Apply complete! Resources: 6 added, 0 changed, 0 destroyed.
+
+Planning the build...
+Remote configuration updated
+Remote state configured and pulled.
+Get: file:///mnt/git/stono/ci-in-a-box/terraform/modules/container
+Get: file:///mnt/git/stono/ci-in-a-box/terraform/modules/cluster-subnet
+Refreshing Terraform state in-memory prior to plan...
+The refreshed state will be used to calculate this plan, but
+will not be persisted to local or remote state storage.
+
++ module.container.subnet.google_compute_subnetwork.subnet_europe
+    gateway_address: "<computed>"
+    ip_cidr_range:   "10.34.96.0/24"
+    name:            "testing-preprod-eu-west"
+    network:         "testing-poc-network"
+    region:          "europe-west1"
+    self_link:       "<computed>"
+
++ module.container.google_container_cluster.cluster
+    additional_zones.#:                   "1"
+    additional_zones.0:                   "europe-west1-d"
+    cluster_ipv4_cidr:                    "10.37.64.0/19"
+    endpoint:                             "<computed>"
+    initial_node_count:                   "1"
+    instance_group_urls.#:                "<computed>"
+    logging_service:                      "<computed>"
+    master_auth.#:                        "1"
+    master_auth.0.client_certificate:     "<computed>"
+    master_auth.0.client_key:             "<computed>"
+    master_auth.0.cluster_ca_certificate: "<computed>"
+    master_auth.0.password:               "testingpassword"
+    master_auth.0.username:               "admin"
+    monitoring_service:                   "none"
+    name:                                 "testing-preprod"
+    network:                              "testing-poc-network"
+    node_config.#:                        "1"
+    node_config.0.disk_size_gb:           "100"
+    node_config.0.machine_type:           "n1-standard-2"
+    node_config.0.oauth_scopes.#:         "8"
+    node_config.0.oauth_scopes.0:         "https://www.googleapis.com/auth/cloud-platform"
+    node_config.0.oauth_scopes.1:         "https://www.googleapis.com/auth/compute"
+    node_config.0.oauth_scopes.2:         "https://www.googleapis.com/auth/devstorage.read_write"
+    node_config.0.oauth_scopes.3:         "https://www.googleapis.com/auth/logging.write"
+    node_config.0.oauth_scopes.4:         "https://www.googleapis.com/auth/servicecontrol"
+    node_config.0.oauth_scopes.5:         "https://www.googleapis.com/auth/service.management"
+    node_config.0.oauth_scopes.6:         "https://www.googleapis.com/auth/datastore"
+    node_config.0.oauth_scopes.7:         "https://www.googleapis.com/auth/pubsub"
+    node_version:                         "1.5.3"
+    subnetwork:                           "testing-preprod-eu-west"
+    zone:                                 "europe-west1-c"
+
+
+Plan: 2 to add, 0 to change, 0 to destroy.
+Applying terraform plan...
+Remote configuration updated
+Remote state configured and pulled.
+module.container.subnet.google_compute_subnetwork.subnet_europe: Creating...
+  gateway_address: "" => "<computed>"
+  ip_cidr_range:   "" => "10.34.96.0/24"
+  name:            "" => "testing-preprod-eu-west"
+  network:         "" => "testing-poc-network"
+  region:          "" => "europe-west1"
+  self_link:       "" => "<computed>"
+module.container.subnet.google_compute_subnetwork.subnet_europe: Creation complete
+module.container.google_container_cluster.cluster: Creating...
+  additional_zones.#:                   "" => "1"
+  additional_zones.0:                   "" => "europe-west1-d"
+  cluster_ipv4_cidr:                    "" => "10.37.64.0/19"
+  endpoint:                             "" => "<computed>"
+  initial_node_count:                   "" => "1"
+  instance_group_urls.#:                "" => "<computed>"
+  logging_service:                      "" => "<computed>"
+  master_auth.#:                        "" => "1"
+  master_auth.0.client_certificate:     "" => "<computed>"
+  master_auth.0.client_key:             "" => "<computed>"
+  master_auth.0.cluster_ca_certificate: "" => "<computed>"
+  master_auth.0.password:               "" => "testingpassword"
+  master_auth.0.username:               "" => "admin"
+  monitoring_service:                   "" => "none"
+  name:                                 "" => "testing-preprod"
+  network:                              "" => "testing-poc-network"
+  node_config.#:                        "" => "1"
+  node_config.0.disk_size_gb:           "" => "100"
+  node_config.0.machine_type:           "" => "n1-standard-2"
+  node_config.0.oauth_scopes.#:         "" => "8"
+  node_config.0.oauth_scopes.0:         "" => "https://www.googleapis.com/auth/cloud-platform"
+  node_config.0.oauth_scopes.1:         "" => "https://www.googleapis.com/auth/compute"
+  node_config.0.oauth_scopes.2:         "" => "https://www.googleapis.com/auth/devstorage.read_write"
+  node_config.0.oauth_scopes.3:         "" => "https://www.googleapis.com/auth/logging.write"
+  node_config.0.oauth_scopes.4:         "" => "https://www.googleapis.com/auth/servicecontrol"
+  node_config.0.oauth_scopes.5:         "" => "https://www.googleapis.com/auth/service.management"
+  node_config.0.oauth_scopes.6:         "" => "https://www.googleapis.com/auth/datastore"
+  node_config.0.oauth_scopes.7:         "" => "https://www.googleapis.com/auth/pubsub"
+  node_version:                         "" => "1.5.3"
+  subnetwork:                           "" => "testing-preprod-eu-west"
+  zone:                                 "" => "europe-west1-c"
+module.container.google_container_cluster.cluster: Creation complete
+
+Apply complete! Resources: 2 added, 0 changed, 0 destroyed.
+
+Configuring env...
+Acquiring credentials for cluster testing-preprod
+Fetching cluster endpoint and auth data.
+kubeconfig entry generated for testing-preprod.
+Applying common configuration: /mnt/git/stono/ci-in-a-box/configuration/common/default.configmap.yml
+ [i] Overriding namespace to: default
+ -> kubectl --namespace default apply -f ../tmp/default.configmap.yml
+ <- configmap "namespace-config" created
+Deployment complete
+Applying common configuration: /mnt/git/stono/ci-in-a-box/configuration/common/gce.storageclass.fast.yml
+ -> kubectl --namespace default apply -f ../tmp/gce.storageclass.fast.yml
+ <- storageclass "fast" created
+Deployment complete
+Applying common configuration: /mnt/git/stono/ci-in-a-box/configuration/common/application.namespace.yml
+ -> kubectl --namespace default apply -f ../tmp/application.namespace.yml
+ <- namespace "testing" created
+Deployment complete
+Applying common configuration: /mnt/git/stono/ci-in-a-box/configuration/common/gce.storageclass.slow.yml
+ -> kubectl --namespace default apply -f ../tmp/gce.storageclass.slow.yml
+ <- storageclass "slow" created
+Deployment complete
+Applying environment configuration: /mnt/git/stono/ci-in-a-box/configuration/preprod/namespace.configmap.yml
+ [i] Overriding namespace to: testing
+ -> kubectl --namespace testing apply -f ../tmp/namespace.configmap.yml
+ <- configmap "namespace-config" created
+Deployment complete
+Acquiring credentials for cluster testing-preprod
+Fetching cluster endpoint and auth data.
+kubeconfig entry generated for testing-preprod.
+Deploying gocd secrets...
+secret "gocd.users" created
+secret "gocd.goagent-key" created
+secret "gocd.ssh" created
+
+Ensuring disks...
+ + testing-gocd-master
+ + testing-gocd-master-config
+
+Deploying gocd master...
+ -> kubectl --namespace default apply -f ../tmp/master.pod.yml
+ <- deployment "gocd-master" created
+Deployment complete
+
+Deploying gocd master service...
+ -> kubectl --namespace default apply -f ../tmp/master.service.yml
+ <- service "gocd-master" created
+Deployment complete
+
+Deploying gocd NGINX...
+ -> kubectl --namespace default apply -f ../tmp/nginx.pod.yml
+ <- deployment "gocd-nginx" created
+Deployment complete
+
+Deploying gocd NGINX service with static ip: 146.148.27.251...
+ -> kubectl --namespace default apply -f ../tmp/nginx.service.yml
+ <- service "gocd-nginx" created
+Deployment complete
+
+Waiting for https://146.148.27.251/go to be available........
+GoCD is online at: https://146.148.27.251/go!
+Acquiring credentials for cluster testing-preprod
+Fetching cluster endpoint and auth data.
+kubeconfig entry generated for testing-preprod.
+Ensuring GPG key...
+agent.asc already exists
+secret "goagent.gpg-key" created
+
+Deploying gocd preprod agents...
+ [i] Overriding namespace to: default
+ -> kubectl --namespace default apply -f ../tmp/agent.pod.yml
+ <- deployment "gocd-agent-preprod" created
+Deployment complete
+
+Deploying gocd prod agents...
+ [i] Overriding namespace to: default
+ -> kubectl --namespace default apply -f ../tmp/agent.pod.yml
+ <- deployment "gocd-agent-prod" created
+Deployment complete
+
+GoCD agents deployed!
+
+Bootstrap complete, have fun on GoCD at https://146.148.27.251/go
+```
+
+#### SSH & GPG Keys
+As mentioned, SSH and GPG keys are generated for the agents to git clone, git-crypt etc.  You will find them in `.tmp/.ssh` and `.tmp/.gnupg`
