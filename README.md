@@ -38,17 +38,19 @@ Essentially a command line interface for automating a bunch of _low value work_.
 
 ... Just kidding about the last one, it won't make you a brew.  But with all this free time on your hands, you can totally make your own!
 
-## Which versions?
+## Too much network jargon, paint me a picture?
+Sure.
 
-  - [GoCD](https://github.com/Stono/gocd-master): 17.2.0
-  - [Kubernetes](https://github.com/kubernetes/kubernetes/): 1.5.3
-
+![Network](images/network.png)
 
 ## Awesome, so what do I do?
 
-  1. Clone the repo
-  2. Create an `.env` file in the root of the directory
-  3. Run `./start`
+**IMPORTANT**: At this point in time, the scripts only support Linux!  This is only short term, as I'll be moving the script into a docker container itself to add Windows and MacOSX support within the coming days! 
+
+  1. Make sure you have a GCP account and your `gcloud` cli is logged in
+  2. Clone the repo
+  3. Create an `.env` file in the root of the directory
+  4. Run `./start`
 
 ### An env file?
 Yes, this is a completely generic implementation that is configured with the env file.  It should look like, and have all the following properties:
@@ -75,7 +77,7 @@ GOCD_AGENT_KEY="some-super-secure-agent-key"
 ```
 
 ### Running `./start`
-The script will validate you have all the required bits and bobs, and if you don't - prompt you what to do.  My intention is to move this entire script into its own docker container soon too, so you wont need these dependencies on your host.  Plus, I built this on Linux, it probably won't work on Mac or Windows.
+The script will validate you have all the required bits and bobs, and if you don't - prompt you what to do.  My intention is to move this entire script into its own docker container soon too, so you wont need these dependencies on your host. 
 
 ```
 $ ./start 
