@@ -34,6 +34,7 @@ Essentially a command line interface for automating a bunch of _low value work_.
   - Deploy [GoCD Master](https://github.com/Stono/gocd-master) to your preprod kubernetes cluster
   - Deploy 2x [Special GCP tweaked GoCD Agents](https://github.com/Stono/gocd-agent), preloaded with `kubectl`, `gcloud`, `terraform` etc
   - Deploy [Stono's Docker Nginx](https://github.com/Stono/docker-nginx-letsencrypt), which fronts your GoCD with a LetsEncrypt SSL certificate 
+  - Automatically clean up orphaned firewall rules, disks etc, as terraform doesn't clean up pod resources if you delete a cluster
   - Make you a cup of tea.
 
 ... Just kidding about the last one, it won't make you a brew.  But with all this free time on your hands, you can totally make your own!
