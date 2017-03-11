@@ -436,3 +436,13 @@ Bootstrap complete, have fun on GoCD at https://146.148.27.251/go
 
 #### SSH & GPG Keys
 As mentioned, SSH and GPG keys are generated for the agents to git clone, git-crypt etc.  You will find them in `.tmp/.ssh` and `.tmp/.gnupg`
+
+### LICENSE
+Apache-2.0.  In summary, use it however you like but don't blame me if you break stuff!
+
+### Special Thanks
+A few people have shared the rather painful journey of discovery of the past few months when it comes to GCP, Kubernetes, GKE etc.
+
+  - [Ana](https://github.com/orgs/peopledata/people/aninhalacerda)
+  - [Fernando](https://github.com/orgs/peopledata/people/fernando-alves)
+  - [Boni](https://github.com/orgs/peopledata/people/Bonifacio2)
