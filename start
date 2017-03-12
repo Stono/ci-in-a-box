@@ -370,6 +370,7 @@ case "$command" in
     do_infra_destroy "preprod"
     do_infra_destroy "networking"
     do_infra_destroy "other"
+    do_infra_cleanup
     echo ""
     bold "Nuke complete."
     exit 0
