@@ -448,8 +448,6 @@ As mentioned, SSH and GPG keys are generated for the agents to git clone, git-cr
 ### TODO
 There are a few more improvements to make:
 
-  - Having an .env.default file, which minimises the amount of environment variables you need to specify
-  - Supporting non-EU based regions
   - More variables, to control things like # of GCP machines
   - Add [Image Cleaner](https://github.com/peopledata/image-cleaner) daemon
 

@@ -159,6 +159,7 @@ if [ ! -f "$ROOT/start" ]; then
   exit 1
 fi
 
+source "$ROOT/.env.default"
 if [ -f "$ROOT/.env" ]; then
   source "$ROOT/.env"
 fi
