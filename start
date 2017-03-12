@@ -54,6 +54,7 @@ function display_usage_and_exit {
   echo " - configure  [preprod | prod]                       Configure one of these"
   echo " - deploy     [gocd-master | gocd-agents]            Deploy either the go master or agents"
   echo ""
+  echo " - clean                                             Cleans up orphaned firewall rules, disks etc"
   echo " - bootstrap                                         Does all of the above, on a new GCP project"
   echo " - nuke                                              Destroy everything in one devastating blow"
   echo ""
@@ -329,7 +330,6 @@ case "$command" in
   build)
     set_project
     do_infra $env
-    do_infra_cleanup
     exit 0
     ;;
   deploy)
@@ -340,6 +340,9 @@ case "$command" in
   destroy)
     set_project
     do_infra_destroy $env
+    exit 0
+    ;;
+  clean) 
     do_infra_cleanup
     exit 0
     ;;
