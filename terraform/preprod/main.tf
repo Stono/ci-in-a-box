@@ -4,6 +4,16 @@ provider "google" {
   region       = "europe-west1"
 }
 
+resource "google_compute_address" "gocd" {
+  name   = "${var.stack_name}-gocd"
+  region = "europe-west1"
+}
+
+resource "google_compute_address" "preprod" {
+  name   = "${var.stack_name}-preprod"
+  region = "europe-west1"
+}
+
 module "container" {
   source = "../modules/container"
   env = "preprod"

@@ -33,18 +33,3 @@ resource "google_compute_firewall" "web-ports" {
   source_tags = ["http-server", "https-server"]
 }
 
-
-resource "google_compute_address" "gocd" {
-  name   = "${var.stack_name}-gocd"
-  region = "europe-west1"
-}
-
-resource "google_compute_address" "preprod" {
-  name   = "${var.stack_name}-preprod"
-  region = "europe-west1"
-}
-
-resource "google_compute_address" "prod" {
-  name   = "${var.stack_name}-prod"
-  region = "europe-west1"
-}

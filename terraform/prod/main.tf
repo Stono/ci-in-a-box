@@ -4,6 +4,11 @@ provider "google" {
   region       = "europe-west1"
 }
 
+resource "google_compute_address" "prod" {
+  name   = "${var.stack_name}-prod"
+  region = "europe-west1"
+}
+
 module "container" {
   source = "../modules/container"
   env = "prod"
