@@ -1,4 +1,20 @@
 #!/bin/bash
+if [ "$COMMON_DONE" = "true" ]; then
+  return;
+fi
+COMMON_DONE="true"
+
+function ensure_disk {
+  set +e
+  if ! gcloud compute disks describe "$1" &>/dev/null; then
+    echo " - $1"
+    echo "   Creating disk $1 with size $2"
+    gcloud compute disks create --size=$2 $1
+  else
+    echo " + $1"
+  fi                                                                                                                            
+  set -e
+}
 
 function bold {
   sbold=$(tput bold)
@@ -18,7 +34,7 @@ function wait_for_url {
   set -e
 }
 
-function exp {
+function export_variable {
   ARG_NAME=$1
   ARG_VALUE=$2
   ARG_NAME_LOWER=$(echo "$ARG_NAME" | awk '{print tolower($0)}') 
@@ -37,7 +53,7 @@ function enforce_arg {
     PROMPT=" + $ARG_DESC ($ARG_VALUE): " 
     if [ "$NO_PROMPT" = "true" ]; then
       echo "$PROMPT"
-      exp "$ARG_NAME" "$ARG_VALUE"
+      export_variable "$ARG_NAME" "$ARG_VALUE"
       return;
     fi
   fi
@@ -51,7 +67,7 @@ function enforce_arg {
         fi
         ;;
       *)
-        exp "$ARG_NAME" "$ARG_VALUE"
+        export_variable "$ARG_NAME" "$ARG_VALUE"
         break;
     esac
   done
@@ -123,3 +139,29 @@ function command_check {
     echo " + $1"
   fi
 }
+
+check_presence() {
+  if [ -z "$1" ] ; then
+    display_usage_and_exit
+  fi
+}
+
+function abs_path {
+  echo $(cd $1 && echo $PWD)
+}
+
+ROOT=$(abs_path "$(dirname $0)/")
+if [ ! -f "$ROOT/start" ]; then
+  ROOT=$(abs_path "$(dirname $0)/../")
+fi
+if [ ! -f "$ROOT/start" ]; then
+  echo "ERROR: Unable to locate project root!"
+  exit 1
+fi
+
+if [ -f "$ROOT/.env" ]; then
+  source "$ROOT/.env"
+fi
+
+TEMP_DIR=$ROOT/.tmp
+mkdir -p "$TEMP_DIR"

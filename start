@@ -1,25 +1,41 @@
 #!/bin/bash
 set -e
 source scripts/common.sh
+source scripts/common-kubectl.sh
 
-OS=$(uname -a | awk '{print $1}')
-if [ ! "$OS" = "Linux" ]; then
-  bold "Sorry, you're not supported!"
+function display_usage_and_exit {
+  bold "Welcome to the all in one GCP EU Kubernetes deployment script."
   echo ""
-  echo "This script was designed to be run on Linux, not $OS"
-  echo "There will be differences in the tools which have no been accounted for"
+  echo "Usage: $(basename "$0") <command> [options]"
+  echo " - build      [preprod | prod | networking | other]  Plan and Build one of these"
+  echo " - destroy    [preprod | prod | networking | other]  Destroy one of these"
+  echo " - configure  [preprod | prod]                       Configure one of these"
+  echo " - deploy     [gocd-master | gocd-agents]            Deploy either the go master or agents"
   echo ""
-  echo "Please try using the docker version instead!"
-  echo "docker run --rm -it stono/ciinabox"
+  echo " - clean                                             Cleans up orphaned firewall rules, disks etc"
+  echo " - bootstrap                                         Does all of the above, on a new GCP project"
+  echo " - nuke                                              Destroy everything in one devastating blow"
   echo ""
-  echo "Thanks!"
   exit 1
-fi
+}
 
-export KUBECTL_NAMESPACE=default
-mkdir -p .tmp
+function ensure_linux {
+  OS=$(uname -a | awk '{print $1}')
+  if [ ! "$OS" = "Linux" ]; then
+    bold "Sorry, you're not supported!"
+    echo ""
+    echo "This script was designed to be run on Linux, not $OS"
+    echo "There will be differences in the tools which have no been accounted for"
+    echo ""
+    echo "Please try using the docker version instead!"
+    echo "docker run --rm -it stono/ciinabox"
+    echo ""
+    echo "Thanks!"
+    exit 1
+  fi
+}
 
-function validate_tools {
+function ensure_tools {
   bold "Checking tool dependencies..."
   command_check "kubectl"
   command_check "terraform"
@@ -45,50 +61,25 @@ function validate_tools {
   echo ""
 }
 
-function display_usage_and_exit {
-  bold "Welcome to the all in one GCP EU Kubernetes deployment script."
+function ensure_environment_variables {
+  bold "Checking environment configuration..."
+  enforce_arg "LETSENCRYPT_EMAIL" "Lets Encrypt email address"
+
+  enforce_arg "STACK_NAME" "This application stack name"
+  enforce_arg "STATE_BUCKET" "GCS Bucket to store state in"
+  enforce_arg "NETWORK_NAME" "GCP Private Network Name"
+  enforce_arg "GCP_PROJECT_NAME" "GCP Project Name"
+  enforce_arg "PREPROD_CLUSTER_PASSWORD" "The Kubernetes preprod cluster password"
+  enforce_arg "PROD_CLUSTER_PASSWORD" "The Kubernetes prod cluster password"
+
+  enforce_arg "GOCD_USERNAME" "Username to login to GOCD with"
+  enforce_arg "GOCD_PASSWORD" "Password to login to GOCD with"
+  enforce_arg "GOCD_AGENT_KEY" "Secure key that agents connect with"
+
   echo ""
-  echo "Usage: $(basename "$0") <command> [options]"
-  echo " - build      [preprod | prod | networking | other]  Plan and Build one of these"
-  echo " - destroy    [preprod | prod | networking | other]  Destroy one of these"
-  echo " - configure  [preprod | prod]                       Configure one of these"
-  echo " - deploy     [gocd-master | gocd-agents]            Deploy either the go master or agents"
-  echo ""
-  echo " - clean                                             Cleans up orphaned firewall rules, disks etc"
-  echo " - bootstrap                                         Does all of the above, on a new GCP project"
-  echo " - nuke                                              Destroy everything in one devastating blow"
-  echo ""
-  exit 1
 }
 
-check_presence() {
-  if [ -z "$1" ] ; then
-    display_usage_and_exit
-  fi
-}
-
-function plan_build {
-  bold "Planning the build..."
-  ./scripts/infra plan "$env"
-}
-
-function plan_destroy {
-  bold "Planning the destruction..."
-  ./scripts/infra plan_destroy "$env"
-}
-
-function terraform_apply {
-  bold "Applying terraform plan..."
-  ./scripts/infra apply "$env"
-}
-
-function kube_environment {
-  check_presence "$env"
-  bold Configuring env...
-  ./scripts/configure-env "$env"
-}
-
-function validate_not_existing {
+function ensure_cluster_doesnt_exist {
   echo Checking for cluster... 
   if gcloud compute instances list | grep "-$env-" &>/dev/null; then
     echo "Error!  There appears to be machines associated with $env."
@@ -98,7 +89,7 @@ function validate_not_existing {
   fi
 }
 
-function generate_gpg_key {
+function ensure_gpg_key {
   export GNUPGHOME="$PWD/.tmp/.gnupg"
   if [ -f "$GNUPGHOME/agent.asc" ]; then
     echo "agent.asc already exists"
@@ -130,28 +121,7 @@ gpg2 -a --export > "$GNUPGHOME/agent.asc"
 gpg2 -a --export-secret-keys >> "$GNUPGHOME/agent.asc"
 }
 
-function validate_environment_variables {
-  if [ -f ".env" ]; then
-    source .env
-  fi
-  bold "Checking environment configuration..."
-  enforce_arg "LETSENCRYPT_EMAIL" "Lets Encrypt email address"
-
-  enforce_arg "STACK_NAME" "This application stack name"
-  enforce_arg "STATE_BUCKET" "GCS Bucket to store state in"
-  enforce_arg "NETWORK_NAME" "GCP Private Network Name"
-  enforce_arg "GCP_PROJECT_NAME" "GCP Project Name"
-  enforce_arg "PREPROD_CLUSTER_PASSWORD" "The Kubernetes preprod cluster password"
-  enforce_arg "PROD_CLUSTER_PASSWORD" "The Kubernetes prod cluster password"
-
-  enforce_arg "GOCD_USERNAME" "Username to login to GOCD with"
-  enforce_arg "GOCD_PASSWORD" "Password to login to GOCD with"
-  enforce_arg "GOCD_AGENT_KEY" "Secure key that agents connect with"
-
-  echo ""
-}
-
-function validate_ssh_key {
+function ensure_ssh_key {
   if [ ! -d "./.tmp/.ssh" ]; then
     bold "Generating SSH key pair..."
     mkdir -p ./.tmp/.ssh
@@ -159,38 +129,32 @@ function validate_ssh_key {
   fi
 }
 
-function ensure_disk {
-  set +e
-  if ! gcloud compute disks describe "$1" &>/dev/null; then
-    echo " - $1"
-    echo "   Creating disk $1 with size $2"
-    gcloud compute disks create --size=$2 $1
+function ensure_gcloud_configuration {
+  bold "Validating gcloud configuration..."
+  if ! gcloud config list 2>/dev/null | grep $GCP_PROJECT_NAME &>/dev/null; then
+    gcloud config set compute/region europe-west1
+    gcloud config set compute/zone europe-west1-c
+    gcloud config set project $GCP_PROJECT_NAME
+  else 
+    echo " + $GCP_PROJECT_NAME"
+  fi
+  echo ""
+  bold "Validating authentication status..."
+  if gcloud auth list 2>&1 | grep "No credentialed accounts." &>/dev/null; then
+    gcloud auth login 
+    gcloud auth application-default login
   else
-    echo " + $1"
-  fi                                                                                                                            
-  set -e
+    echo " + $(gcloud auth list 2>/dev/null | grep ACTIVE | awk '{print $2}')"
+  fi
+  echo ""
 }
 
-function delete_secret {
-  set +e
-  kubectl delete secret $1 2>/dev/null
-  set -e
-}
-
-function ensure_secret_literal {
-  delete_secret $1
-  kubectl create secret generic $1 --from-literal=$2=$3
-}
-
-function ensure_secret_file {
-  delete_secret $1
-  kubectl create secret generic $1 --from-file=$2=$3
-}
-
-acquire_credentials_for_cluster() {
-  echo "Acquiring credentials for cluster $1"
-  gcloud container clusters get-credentials $1 \
-    --zone europe-west1-c --project $GCP_PROJECT_NAME 
+function ensure_in_docker {
+  if [ ! -f "/.dockerenv" ]; then
+    bold "You are not running inside docker!  I really think you should."
+    confirm
+  fi
+  echo ""
 }
 
 function deploy_gocd_master {
@@ -199,26 +163,26 @@ function deploy_gocd_master {
   ensure_secret_file "gocd.users" "users" "./.tmp/users"
   ensure_secret_literal "gocd.goagent-key" "key" "$GOCD_AGENT_KEY"
 
-  validate_ssh_key  
+  ensure_ssh_key  
   delete_secret "gocd.ssh"
-  kubectl create secret generic "gocd.ssh" --from-file=ssh-privatekey=.tmp/.ssh/id_rsa --from-file=ssh-publickey=.tmp/.ssh/id_rsa.pub
+  kube create secret generic "gocd.ssh" --from-file=ssh-privatekey=.tmp/.ssh/id_rsa --from-file=ssh-publickey=.tmp/.ssh/id_rsa.pub
 
   echo ""
   bold "Deploying gocd master..."
-  pdata app deploy kubernetes/master.pod.yml
+  pdata app deploy "$ROOT/kubernetes/master.pod.yml"
 
   echo ""
   bold "Deploying gocd master service..."
-  pdata app deploy kubernetes/master.service.yml
+  pdata app deploy "$ROOT/kubernetes/master.service.yml"
 
   echo ""
   bold "Deploying gocd NGINX..."
-  pdata app deploy kubernetes/nginx.pod.yml
+  pdata app deploy "$ROOT/kubernetes/nginx.pod.yml"
 
   echo ""
   export GOCD_MASTER_IP=$(gcloud compute addresses describe $STACK_NAME-gocd | grep "address:" | awk '{print $2}' | xargs)
   bold "Deploying gocd NGINX service with static ip: $GOCD_MASTER_IP..."
-  pdata app deploy kubernetes/nginx.service.yml
+  pdata app deploy "$ROOT/kubernetes/nginx.service.yml"
 
   echo ""
   GOCD_URL="https://$GOCD_MASTER_IP/go"
@@ -228,33 +192,53 @@ function deploy_gocd_master {
 
 function deploy_gocd_agent {
   echo "Ensuring GPG key..."
-  generate_gpg_key
+  ensure_gpg_key
   ensure_secret_file "goagent.gpg-key" "agent.asc" "./.tmp/.gnupg/agent.asc"
 
   echo ""
   bold "Deploying gocd preprod agents..."
   export GOCD_AGENT_ENV=preprod
-  pdata app deploy kubernetes/agent.pod.yml
+  pdata app deploy "$ROOT/kubernetes/agent.pod.yml"
 
 
   echo ""
   bold "Deploying gocd prod agents..."
   export GOCD_AGENT_ENV=prod
-  pdata app deploy kubernetes/agent.pod.yml
+  pdata app deploy "$ROOT/kubernetes/agent.pod.yml"
 
   echo ""
   bold "GoCD agents deployed!"
 }
 
+function plan_build {
+  bold "Planning the build..."
+  $ROOT/scripts/infra plan "$env"
+}
+
+function plan_destroy {
+  bold "Planning the destruction..."
+  $ROOT/scripts/infra plan_destroy "$env"
+}
+
+function terraform_apply {
+  bold "Applying terraform plan..."
+  $ROOT/scripts/infra apply "$env"
+}
+
+function do_kube_environment {
+  check_presence "$env"
+  bold Configuring env...
+  $ROOT/scripts/configure-env "$env"
+}
+
 function do_infra {
   env=$1
   check_presence "$env"
-  validate_not_existing
   plan_build
   confirm
   terraform_apply
   if [ "$env" = "preprod" ] || [ "$env" = "prod" ]; then
-    kube_environment
+    do_kube_environment
   fi
 }
 
@@ -284,61 +268,29 @@ function do_infra_cleanup {
   ./scripts/cleanup-disks
 }
 
-function set_project {
-  echo "Setting cloud project..."
-  gcloud config set project $GCP_PROJECT_NAME
-}
-
-function validate_gcloud {
-  bold "Validating gcloud configuration..."
-  if ! gcloud config list 2>/dev/null | grep $GCP_PROJECT_NAME &>/dev/null; then
-    gcloud config set compute/region europe-west1
-    gcloud config set compute/zone europe-west1-c
-    gcloud config set project $GCP_PROJECT_NAME
-  else 
-    echo " + $GCP_PROJECT_NAME"
-  fi
-  echo ""
-  bold "Validating authentication status..."
-  if gcloud auth list 2>&1 | grep "No credentialed accounts." &>/dev/null; then
-    gcloud auth login 
-    gcloud auth application-default login
-  else
-    echo " + $(gcloud auth list 2>/dev/null | grep ACTIVE | awk '{print $2}')"
-  fi
-  echo ""
-}
-
-function validate_docker {
-  if [ ! -f "/.dockerenv" ]; then
-    bold "You are not running inside docker!  I really think you should."
-    confirm
-  fi
-  echo ""
-}
-
 command="${1:-}"
 env="${2:-}"
 
-validate_docker
-validate_tools
-validate_environment_variables
-validate_gcloud
+export KUBECTL_NAMESPACE=default
+mkdir -p .tmp
+
+ensure_linux
+ensure_in_docker
+ensure_tools
+ensure_environment_variables
+ensure_gcloud_configuration
 
 case "$command" in
   build)
-    set_project
-    do_infra $env
+    do_infra "$env"
     exit 0
     ;;
   deploy)
-    set_project
-    do_deploy $env
+    do_deploy "$env"
     exit 0
     ;;
   destroy)
-    set_project
-    do_infra_destroy $env
+    do_infra_destroy "$env"
     exit 0
     ;;
   clean) 
@@ -346,14 +298,13 @@ case "$command" in
     exit 0
     ;;
   configure)
-    set_project
     if [ "$env" = "preprod" ] || [ "$env" = "prod" ]; then
-      kube_environment $env
+      do_kube_environment "$env"
     fi
     exit 0
     ;;
   bootstrap)
-    set_project
+    ensure_cluster_doesnt_exist
     do_infra "other"
     do_infra "networking"
     do_infra "preprod"
@@ -364,7 +315,6 @@ case "$command" in
     exit 0
     ;;
   nuke)
-    set_project
     do_infra_destroy "prod"
     do_infra_destroy "preprod"
     do_infra_destroy "networking"

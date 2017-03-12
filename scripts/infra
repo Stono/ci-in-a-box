@@ -1,13 +1,6 @@
 #!/bin/bash
-set -o pipefail
-set -o errexit
-
-function abs_path {
-  echo $(cd $1 && echo $PWD)
-}
-ROOT=$(abs_path "$(dirname $0)/../")
-TEMP_DIR=$ROOT/.tmp
-mkdir -p $TEMP_DIR
+set -e
+source "$(dirname $0)/common.sh"
 
 function display_usage_and_exit {
   echo "Usage: $(basename "$0") <command>"
@@ -18,10 +11,9 @@ function display_usage_and_exit {
 }
 
 function tf {
-  pushd "$(dirname $0)/../terraform/$env" &>/dev/null
-  echo terraform $*
+  pushd "$ROOT/terraform/$env" &>/dev/null
   terraform $*
-  popd &>/dev/null
+  popd &>/dev/null 
 }
 
 function update_terraform_modules {
@@ -29,12 +21,12 @@ function update_terraform_modules {
 }
 
 function config_remote_state {
-  if ! gsutil ls gs://$TF_VAR_state_bucket &>/dev/null; then
+  if ! gsutil ls gs://$STATE_BUCKET &>/dev/null; then
     echo "Terraform state bucket does not exist, creating..."
-    gsutil mb -c regional -l europe-west1 gs://$TF_VAR_state_bucket
+    gsutil mb -c regional -l europe-west1 gs://$STATE_BUCKET
   fi
-  tf remote config -backend=gcs -pull=false -backend-config="bucket=$TF_VAR_state_bucket" \
-  -backend-config="path=$env/terraform.tfstate" -backend-config="project=$TF_VAR_gcp_project_name"
+  tf remote config -backend=gcs -pull=false -backend-config="bucket=$STATE_BUCKET" \
+  -backend-config="path=$env/terraform.tfstate" -backend-config="project=$GCP_PROJECT_NAME"
 }
 
 function plan_and_save {
