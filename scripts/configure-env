@@ -3,7 +3,10 @@ set -o pipefail
 set -o nounset
 set -o errexit
 
-ROOT=$(git rev-parse --show-toplevel)
+function abs_path {
+  echo $(cd $1 && echo $PWD)
+}
+ROOT=$(abs_path "$(dirname $0)/../")
 
 display_usage_and_exit() {
   echo "Usage: $(basename "$0") [preprod | prod]"

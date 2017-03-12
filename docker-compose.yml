@@ -1,0 +1,11 @@
+version: '2'
+
+services:
+  ciinabox:
+    image: stono/ciinabox
+    volumes:
+      - ./.env:/app/.env
+      - ./.tmp:/app/.tmp
+      - ./.docker/config:/root/.config
+      - ./.docker/kube:/root/.kube
+    build: .

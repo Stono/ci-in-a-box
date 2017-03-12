@@ -45,13 +45,9 @@ Sure.
 ![Network](images/network.png)
 
 ## Awesome, so what do I do?
+This repo itself runs inside a docker container, so that you don't need terraform, gcloud, gsuil and so on on your how - how cool is that?  So long as you have `docker` and `docker-compose` installed, clone this repository and type `docker-compose run --rm ciinabox`.
 
-**IMPORTANT**: At this point in time, the scripts only support Linux!  This is only short term, as I'll be moving the script into a docker container itself to add Windows and MacOSX support within the coming days! 
-
-  1. Make sure you have a GCP account and your `gcloud` cli is logged in
-  2. Clone the repo
-  3. Create an `.env` file in the root of the directory
-  4. Run `./start`
+However, if you really want, you can run it on your host too.  Just make sure you have all the components required.  To run it on your host, run `./start`.
 
 ### An env file?
 Yes, this is a completely generic implementation that is configured with the env file.  It should look like, and have all the following properties:
@@ -77,11 +73,11 @@ GOCD_AGENT_KEY="some-super-secure-agent-key"
 
 ```
 
-### Running `./start`
-The script will validate you have all the required bits and bobs, and if you don't - prompt you what to do.  My intention is to move this entire script into its own docker container soon too, so you wont need these dependencies on your host. 
+### Running 
+The script will validate you have all the required bits and bobs, and if you don't - prompt you what to do.  
 
 ```
-$ ./start 
+$ docker-compose run --rm ciinabox 
 Checking tool dependencies...
  + kubectl
  + terraform
@@ -128,7 +124,7 @@ Usage: start <command>
 If you're on a fresh setup, just run `./setup bootstrap`, wait a few minutes and then crack on building the stuff that matters.  You'll get something like this:
 
 ```
-$ ./start bootstrap
+$ docker-compose run --rm ciinabox bootstrap
 Checking for cluster...
 Planning the build...
 Remote configuration updated

@@ -2,7 +2,10 @@
 set -o pipefail
 set -o errexit
 
-ROOT=$(git rev-parse --show-toplevel)
+function abs_path {
+  echo $(cd $1 && echo $PWD)
+}
+ROOT=$(abs_path "$(dirname $0)/../")
 TEMP_DIR=$ROOT/.tmp
 mkdir -p $TEMP_DIR
 
@@ -12,18 +15,6 @@ function display_usage_and_exit {
   echo " - plan_destroy [preprod | prod | networking]: plan infra destroy and save it to file"
   echo " - apply        [preprod | prod | networking]: apply changes to infra"
   exit 1
-}
-
-function pop {
-  if [ ! "$(git stash list | grep -c infra | xargs)" = "0" ]; then
-    git stash pop "$(git stash list | grep infra | awk '{print $1}' | sed 's/\://g')"
-  fi
-}
-
-function unlock_repo {
-  git stash save infra
-  git-crypt unlock
-  pop
 }
 
 function tf {

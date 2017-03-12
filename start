@@ -2,12 +2,17 @@
 set -e
 source scripts/common.sh
 
-if [ ! "$(uname -a | awk '{print $1}')" = "Linux" ]; then
-  bold "Sorry, you're not supported yet!"
-  echo "Unfortunately, I havent tested this script on any platform other than linux."
-  echo "I do not want you blaming me when it destroys your GCP setup."
+OS=$(uname -a | awk '{print $1}')
+if [ ! "$OS" = "Linux" ]; then
+  bold "Sorry, you're not supported!"
   echo ""
-  echo "A docker wrapper version will be coming soon though, so hold tight!"
+  echo "This script was designed to be run on Linux, not $OS"
+  echo "There will be differences in the tools which have no been accounted for"
+  echo ""
+  echo "Please try using the docker version instead!"
+  echo "docker run --rm -it stono/ciinabox"
+  echo ""
+  echo "Thanks!"
   exit 1
 fi
 
@@ -20,7 +25,6 @@ function validate_tools {
   command_check "terraform"
   command_check "gcloud"
   command_check "gsutil"
-  command_check "git"
   command_check "gpg2"
   command_check "curl"
   command_check "pdata" "You can install it with 'npm install -g peopledata-cli'"
@@ -100,11 +104,11 @@ function generate_gpg_key {
     return;
   else
     bold "Generating GPG key..."
-    mkdir -p $GNUPGHOME
-    chmod 0700 $GNUPGHOME
+    mkdir -p "$GNUPGHOME"
+    chmod 0700 "$GNUPGHOME"
   fi
 
-  cat > $GNUPGHOME/agent <<EOF
+  cat > "$GNUPGHOME/agent" <<EOF
   %echo Generating a basic OpenPGP key
   Key-Type: DSA
   Key-Length: 1024
@@ -150,7 +154,7 @@ function validate_ssh_key {
   if [ ! -d "./.tmp/.ssh" ]; then
     bold "Generating SSH key pair..."
     mkdir -p ./.tmp/.ssh
-    ssh-keygen -b 2048 -t rsa -f $PWD/.tmp/.ssh/id_rsa -q -N ""
+    ssh-keygen -b 2048 -t rsa -f "$PWD/.tmp/.ssh/id_rsa" -q -N ""
   fi
 }
 
@@ -285,11 +289,41 @@ function set_project {
   gcloud config set project $GCP_PROJECT_NAME
 }
 
+function validate_gcloud {
+  bold "Validating gcloud configuration..."
+  if ! gcloud config list 2>/dev/null | grep $GCP_PROJECT_NAME &>/dev/null; then
+    gcloud config set compute/region europe-west1
+    gcloud config set compute/zone europe-west1-c
+    gcloud config set project $GCP_PROJECT_NAME
+  else 
+    echo " + $GCP_PROJECT_NAME"
+  fi
+  echo ""
+  bold "Validating authentication status..."
+  if gcloud auth list 2>&1 | grep "No credentialed accounts." &>/dev/null; then
+    gcloud auth login 
+    gcloud auth application-default login
+  else
+    echo " + $(gcloud auth list 2>/dev/null | grep ACTIVE | awk '{print $2}')"
+  fi
+  echo ""
+}
+
+function validate_docker {
+  if [ ! -f "/.dockerenv" ]; then
+    bold "You are not running inside docker!  I really think you should."
+    confirm
+  fi
+  echo ""
+}
+
 command="${1:-}"
 env="${2:-}"
 
+validate_docker
 validate_tools
 validate_environment_variables
+validate_gcloud
 
 case "$command" in
   build)
