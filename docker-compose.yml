@@ -2,6 +2,7 @@ version: '2'
 
 services:
   ciinabox:
+    hostname: ciinabox
     image: stono/ciinabox
     build: .
     volumes:
