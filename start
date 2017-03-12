@@ -277,7 +277,6 @@ function do_infra_destroy {
   plan_destroy
   confirm
   terraform_apply
-  do_infra_cleanup
 }
 
 function do_infra_cleanup {
