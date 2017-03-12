@@ -23,7 +23,7 @@ function update_terraform_modules {
 function config_remote_state {
   if ! gsutil ls gs://$STATE_BUCKET &>/dev/null; then
     echo "Terraform state bucket does not exist, creating..."
-    gsutil mb -c regional -l europe-west1 gs://$STATE_BUCKET
+    gsutil mb -c regional -l $TARGET_REGION gs://$STATE_BUCKET
   fi
   tf remote config -backend=gcs -pull=false -backend-config="bucket=$STATE_BUCKET" \
   -backend-config="path=$env/terraform.tfstate" -backend-config="project=$GCP_PROJECT_NAME"

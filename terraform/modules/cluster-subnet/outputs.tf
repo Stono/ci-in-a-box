@@ -1,3 +1,3 @@
 output "name" {
-  value = "${var.env}-eu-west"
+  value = "${var.stack_name}-${var.env}-${var.target_region}"
 }

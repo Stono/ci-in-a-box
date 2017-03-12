@@ -2,6 +2,10 @@ variable "gcp_project_name" {
   description = "The project name on GCP"
 }
 
+variable "target_region" {
+  description = "The project and compute target region"
+}
+
 variable "network_name" {
   description = "The name for the network"
 }

@@ -4,15 +4,16 @@ module "subnet" {
   ip_range = "${var.ip_range}"
   network_name = "${var.network_name}"
   stack_name = "${var.stack_name}"
+  target_region = "${var.target_region}"
 }
 
 resource "google_container_cluster" "cluster" {
   depends_on = ["module.subnet"]
   name = "${var.stack_name}-${var.env}"
-  zone = "europe-west1-c"
-  additional_zones = ["europe-west1-d"]
+  zone = "${var.target_zone_a}"
+  additional_zones = ["${var.target_zone_b}"]
   network = "${var.network_name}"
-  subnetwork = "${var.stack_name}-${module.subnet.name}"
+  subnetwork = "${module.subnet.name}"
   cluster_ipv4_cidr = "${var.container_cidr_range}"
   monitoring_service = "none"
 

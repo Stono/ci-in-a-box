@@ -26,3 +26,15 @@ variable "stack_name" {
 variable "network_name" {
   description = "The name for the network"
 }
+
+variable "target_region" {
+  description = "The project and compute target region"
+}
+
+variable "target_zone_a" {
+  description = "HA Zone 1"
+}
+
+variable "target_zone_b" {
+  description = "HA Zone 1"
+}

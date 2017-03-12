@@ -28,7 +28,7 @@ RUN sed -i -- 's/\"disable_updater\": false/\"disable_updater\": true/g' $CLOUDS
 
 # Terraform
 RUN cd /tmp && \
-    wget https://releases.hashicorp.com/terraform/$TERRAFORM_VERSION/terraform_$TERRAFORM_VERSION\_linux_amd64.zip && \
+    wget --quiet https://releases.hashicorp.com/terraform/$TERRAFORM_VERSION/terraform_$TERRAFORM_VERSION\_linux_amd64.zip && \
     unzip terraform_*.zip && \
     mv terraform /usr/local/bin && \
     rm -rf *terraform*

@@ -27,7 +27,7 @@ Essentially a command line interface for automating a bunch of _low value work_.
     - preprod: `10.34.96.0/24`
     - prod: `10.34.97.0/24`
   - Configure firewall rules for web apps
-  - Deploy a preprod kubernetes cluster, HA'd across `eu-west1-c` and `eu-west1-d` into the preprod subnet, with a container range of `10.37.64.0/19`
+  - Deploy a preprod kubernetes cluster, HA'd across two zones, into the preprod subnet, with a container range of `10.37.64.0/19`
   - Deploy a prod kuberneters cluster in the same way, to the prod subnet, with a container range of `10.35.96.0/19`
   - Configure `slow` and `fast` storageclasses for PersistentVolumeClaims
   - Create a separate application namespace, and config maps for each namespace 
@@ -58,23 +58,28 @@ If you miss any variables, you will be prompted for them.
 
 ```
 # Behaviour
-NO_PROMPT="true"   # Dont prompt for confirmation of variables
-NO_CONFIRM="false" # Dont prompt to continue
+NO_PROMPT=true  # Dont prompt for confirmation of variables
+NO_CONFIRM=true # Dont prompt to continue
 
-GCP_PROJECT_NAME="your-gcp-project-name"
-STACK_NAME="testing"
-STATE_BUCKET="$STACK_NAME-terraform"
+# GCP Settings
+GCP_PROJECT_NAME=your-gcp-project-name
+TARGET_REGION=europe-west1     
+TARGET_ZONE_A=europe-west1-c
+TARGET_ZONE_B=europe-west1-d
+
+STACK_NAME=testing
+STATE_BUCKET=$STACK_NAME-terraform
 
 # Kubernetes stuff
-CLUSTER_PASSWORD="cluster-password"
-NETWORK_NAME="$STACK_NAME-poc-network"
+PREPROD_CLUSTER_PASSWORD=testingpassword
+PROD_CLUSTER_PASSWORD=testingpasswordprod
+NETWORK_NAME=$STACK_NAME-poc-network
 
 # Application Stuff
-LETSENCRYPT_EMAIL="testing@test.com"
-GOCD_USERNAME="user-name"
-GOCD_PASSWORD="password"
-GOCD_AGENT_KEY="some-super-secure-agent-key"
-
+LETSENCRYPT_EMAIL=testing@test.com
+GOCD_USERNAME=user-name
+GOCD_PASSWORD=password
+GOCD_AGENT_KEY=some-super-secure-agent-key
 ```
 
 ### Running 

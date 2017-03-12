@@ -4,7 +4,7 @@ source scripts/common.sh
 source scripts/common-kubectl.sh
 
 function display_usage_and_exit {
-  bold "Welcome to the all in one GCP EU Kubernetes deployment script."
+  bold "Welcome to the all in one GCP Kubernetes GoCD deployment script."
   echo ""
   echo "Usage: $(basename "$0") <command> [options]"
   echo " - build      [preprod | prod | networking | other]  Plan and Build one of these"
@@ -71,6 +71,9 @@ function ensure_environment_variables {
   enforce_arg "GCP_PROJECT_NAME" "GCP Project Name"
   enforce_arg "PREPROD_CLUSTER_PASSWORD" "The Kubernetes preprod cluster password"
   enforce_arg "PROD_CLUSTER_PASSWORD" "The Kubernetes prod cluster password"
+  enforce_arg "TARGET_REGION" "The primary region"
+  enforce_arg "TARGET_ZONE_A" "HA Zone 1"
+  enforce_arg "TARGET_ZONE_B" "HA Zone 2"
 
   enforce_arg "GOCD_USERNAME" "Username to login to GOCD with"
   enforce_arg "GOCD_PASSWORD" "Password to login to GOCD with"
@@ -80,13 +83,16 @@ function ensure_environment_variables {
 }
 
 function ensure_cluster_doesnt_exist {
-  echo Checking for cluster... 
+  bold "Checking for cluster..." 
   if gcloud compute instances list | grep "-$env-" &>/dev/null; then
     echo "Error!  There appears to be machines associated with $env."
     echo "This means you're trying to build a cluster when one is already built"
     echo "You're a silly monkey.  Destroy it first" 
     exit 1
+  else
+    echo " + Cluster does not exist."
   fi
+  echo ""
 }
 
 function ensure_gpg_key {
@@ -131,10 +137,10 @@ function ensure_ssh_key {
 
 function ensure_gcloud_configuration {
   bold "Validating gcloud configuration..."
-  if ! gcloud config list 2>/dev/null | grep $GCP_PROJECT_NAME &>/dev/null; then
-    gcloud config set compute/region europe-west1
-    gcloud config set compute/zone europe-west1-c
-    gcloud config set project $GCP_PROJECT_NAME
+  if ! gcloud config list 2>/dev/null | grep "$GCP_PROJECT_NAME" &>/dev/null; then
+    gcloud config set compute/region "$TARGET_REGION"
+    gcloud config set compute/zone "$TARGET_ZONE_A"
+    gcloud config set project "$GCP_PROJECT_NAME"
   else 
     echo " + $GCP_PROJECT_NAME"
   fi
@@ -318,9 +324,9 @@ case "$command" in
   nuke)
     do_infra_destroy "prod"
     do_infra_destroy "preprod"
+    do_infra_cleanup
     do_infra_destroy "networking"
     do_infra_destroy "other"
-    do_infra_cleanup
     echo ""
     bold "Nuke complete."
     exit 0

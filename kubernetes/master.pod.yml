@@ -26,7 +26,7 @@ spec:
                         {
                           "key": "failure-domain.beta.kubernetes.io/zone",
                           "operator": "In",
-                          "values": ["europe-west1-c"]
+                          "values": ["{{ENV.TARGET_ZONE_A}}"]
                         }
                       ]
                     }

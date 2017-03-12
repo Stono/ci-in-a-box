@@ -13,3 +13,7 @@ variable "stack_name" {
 variable "ip_range" {
   description = "The ip range for the cluster subnet"
 }
+
+variable "target_region" {
+  description = "The project and compute target region"
+}

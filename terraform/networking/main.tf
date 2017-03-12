@@ -1,7 +1,7 @@
 provider "google" {
   credentials = ""
   project      = "${var.gcp_project_name}"
-  region       = "europe-west1"
+  region       = "${var.target_region}"
 }
 
 resource "google_compute_network" "network" {
