@@ -6,14 +6,16 @@ Welcome to __ci in a box__!
 From an empty GCP project to a EU dual-DC HA kubernetes CI/CD stack in about 6 minutes.
 
 ## What is this?
-An open sourced version of the docker continuous integration and delivery setup I use on a daily basis.  When I say CI/CD, I really do mean entirely docker based.  That is the go agents, despite being docker containers themselves, build applications as containers, use Google Container Registry as an artifact store to promote them up the pipeline.
+It is a docker container, that deploys, builds and configures Kubernetes and GoCD on GKE (GCP) in a configuration that allows for CI/CD of docker applications.  It's also a front runner in the `how many times can i say docker in a minute` competition.
 
-This is a rather abstract example of the CI/CD flow this stack is designed to support:
+Jokes aside, it is an open sourced slightly simplified version of the docker continuous integration and delivery setup I use on a daily basis.  When I say CI/CD, I really do mean entirely docker based.  That is the go agents, despite being docker containers themselves, build applications as containers, use Google Container Registry as an artifact store to promote them up the pipeline.
+
+A picture says 1000 words, so this is a rather abstract example of the CI/CD flow this stack is designed to support:
 
 ![CI](images/ci.png)
 
 ## That's wonderful, but why this repository? 
-Are you one of those people that spends the first few weeks of any new engagement setting up your infrastructure (ip's, firewalls, networking), Kubernetes, then installing your CI server (in my case, GoCD)?  I am, and I was tired of it.  I want to be able to kick off a docker/kubernetes/gcp project with the least amount of effort - and that's what this project is.  I want to start working on the application as quickly as possible.
+Are you one of those people that spends the first few weeks of any new project setting up your infrastructure (ip's, firewalls, networking), Kubernetes, then installing your CI server (in my case, GoCD)?  I am, and I was tired of it.  I want to be able to kick off a docker/kubernetes/gcp project with the least amount of effort - and that's what this project is.  I want to start working on the application as quickly as possible.
 
 ## Cool, so again, specifically, what is this?
 Essentially a command line interface for automating a bunch of _low value work_.  It will:
@@ -47,10 +49,12 @@ Sure.
 ## Awesome, so what do I do?
 This repo itself runs inside a docker container, so that you don't need terraform, gcloud, gsuil and so on on your machine - how cool is that?  So long as you have `docker` and `docker-compose` installed, clone this repository and type `docker-compose run --rm ciinabox`.
 
-However, if you _really want_, you can run it on your host too.  Just make sure you have all the components required.  To run it on your host, run `./start`.
+However, if you _really want_, you can run it on your host too.  Just make sure you have all the components required.  To run it on your host, run `./start`.  The script will validate you have all the required bits.
 
 ### An env file?
-This is designed to be reusable, so everything is done with environment variables.  You can either create a `.env` file like the one below, or specify all of those environment variables in your `docker-compose` or `docker run` commands.  
+This project is designed to be reusable, so everything is done with environment variables.  You can either create a `.env` file like the one below, or specify all of those environment variables in your `docker-compose` or `docker run` commands.  
+
+If you miss any variables, you will be prompted for them.
 
 ```
 # Behaviour
@@ -74,7 +78,7 @@ GOCD_AGENT_KEY="some-super-secure-agent-key"
 ```
 
 ### Running 
-The script will validate you have all the required bits and bobs, and if you don't - prompt you what to do.  
+Pretty simple really, as suggested - run it in docker.  The first time you run the container you will be prompted to login to the `gcloud` cli, just follow the instructions.  Future runs will have your credentials saved via the volume mounts in `docker-compose.yml`.
 
 ```
 $ docker-compose run --rm ciinabox 
@@ -435,6 +439,13 @@ Bootstrap complete, have fun on GoCD at https://146.148.27.251/go
 
 #### SSH & GPG Keys
 As mentioned, SSH and GPG keys are generated for the agents to git clone, git-crypt etc.  You will find them in `.tmp/.ssh` and `.tmp/.gnupg`
+
+### TODO
+There are a few more improvements to make:
+
+  - Having an .env.default file, which minimises the amount of environment variables you need to specify
+  - Supporting non-EU based regions
+  - More variables, to control things like # of GCP machines
 
 ### LICENSE
 Apache-2.0.  In summary, use it however you like but don't blame me if you break stuff!
