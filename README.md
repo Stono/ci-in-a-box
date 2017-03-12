@@ -125,7 +125,7 @@ Usage: start <command>
  - nuke                                      Destroy everything in one devastating blow
 ```
 
-If you're on a fresh setup, just run `./setup bootstrap`, wait a few minutes and then crack on building the stuff that matters.  You'll get something like this:
+If you're on a fresh setup, just run `docker-compose run --rm ciinabox bootstrap`, wait a few minutes and then crack on building the stuff that matters.  You'll get something like this:
 
 ```
 $ docker-compose run --rm ciinabox bootstrap
