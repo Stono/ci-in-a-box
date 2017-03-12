@@ -50,7 +50,7 @@ This repo itself runs inside a docker container, so that you don't need terrafor
 However, if you _really want_, you can run it on your host too.  Just make sure you have all the components required.  To run it on your host, run `./start`.
 
 ### An env file?
-Yes, this is a completely generic implementation that is configured with the env file.  It should look like, and have all the following properties:
+This is designed to be reusable, so everything is done with environment variables.  You can either create a `.env` file like the one below, or specify all of those environment variables in your `docker-compose` or `docker run` commands.  
 
 ```
 # Behaviour
