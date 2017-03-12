@@ -243,12 +243,12 @@ function do_infra {
 }
 
 function do_deploy {
-  env=$1
-  check_presence "$env"
+  app=$1
+  check_presence "$app"
   acquire_credentials_for_cluster "${STACK_NAME}-preprod"
-  if [ "$env" = "gocd-master" ]; then
+  if [ "$app" = "gocd-master" ]; then
     deploy_gocd_master  
-  elif [ "$env" = "gocd-agents" ]; then
+  elif [ "$app" = "gocd-agents" ]; then
     deploy_gocd_agent
   else
     display_usage_and_exit  
