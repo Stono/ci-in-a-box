@@ -446,6 +446,7 @@ There are a few more improvements to make:
   - Having an .env.default file, which minimises the amount of environment variables you need to specify
   - Supporting non-EU based regions
   - More variables, to control things like # of GCP machines
+  - Add [Image Cleaner](https://github.com/peopledata/image-cleaner) daemon
 
 ### LICENSE
 Apache-2.0.  In summary, use it however you like but don't blame me if you break stuff!
