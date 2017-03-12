@@ -45,9 +45,9 @@ Sure.
 ![Network](images/network.png)
 
 ## Awesome, so what do I do?
-This repo itself runs inside a docker container, so that you don't need terraform, gcloud, gsuil and so on on your how - how cool is that?  So long as you have `docker` and `docker-compose` installed, clone this repository and type `docker-compose run --rm ciinabox`.
+This repo itself runs inside a docker container, so that you don't need terraform, gcloud, gsuil and so on on your machine - how cool is that?  So long as you have `docker` and `docker-compose` installed, clone this repository and type `docker-compose run --rm ciinabox`.
 
-However, if you really want, you can run it on your host too.  Just make sure you have all the components required.  To run it on your host, run `./start`.
+However, if you _really want_, you can run it on your host too.  Just make sure you have all the components required.  To run it on your host, run `./start`.
 
 ### An env file?
 Yes, this is a completely generic implementation that is configured with the env file.  It should look like, and have all the following properties:
