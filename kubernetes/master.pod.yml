@@ -66,14 +66,6 @@ spec:
           timeoutSeconds: 1
           periodSeconds: 5
           failureThreshold: 30
-        livenessProbe:
-          httpGet:
-            path: /go
-            port: 8153
-          initialDelaySeconds: 30
-          timeoutSeconds: 3
-          periodSeconds: 10
-          failureThreshold: 3
         env:
         - name: AGENT_KEY
           valueFrom:
