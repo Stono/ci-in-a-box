@@ -165,7 +165,7 @@ function ensure_in_docker {
 
 function deploy_gocd_master {
   bold "Deploying gocd secrets..."
-  echo -n $(htpasswd -nb -s john-lewis password | xargs) > ./.tmp/users
+  echo -n $(htpasswd -nb -s $GOCD_USERNAME $GOCD_PASSWORD | xargs) > ./.tmp/users
   ensure_secret_file "gocd.users" "users" "./.tmp/users"
   ensure_secret_literal "gocd.goagent-key" "key" "$GOCD_AGENT_KEY"
 

@@ -19,7 +19,7 @@ RUN mkdir -p /etc/gcloud/keys
 # Install packages 
 RUN yum -y -q update && \
     yum -y -q install google-cloud-sdk-$CLOUD_SDK_VERSION nodejs wget httpd-tools \
-              python-openssl build-essential libssl-dev g++ unzip which && \
+              python-openssl build-essential libssl-dev g++ unzip which openssh && \
     yum -y -q clean all
 
 # Disable google cloud auto update... we should be pushing a new agent container
