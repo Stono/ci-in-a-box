@@ -6,7 +6,6 @@ services:
     image: stono/ciinabox
     build: .
     volumes:
-      - ./.env:/app/.env
-      - ./.tmp:/app/.tmp
+      - ./:/app
       - ./.docker/config:/root/.config
       - ./.docker/kube:/root/.kube
