@@ -7,14 +7,22 @@ function display_usage_and_exit {
   bold "Welcome to the all in one GCP Kubernetes GoCD deployment script."
   echo ""
   echo "Usage: $(basename "$0") <command> [options]"
-  echo " - build      [preprod | prod | networking | other]  Plan and Build one of these"
-  echo " - destroy    [preprod | prod | networking | other]  Destroy one of these, (please be aware of dependencies)"
-  echo " - configure  [preprod | prod]                       Run configure-env against an environment"
-  echo " - deploy     [gocd-master | gocd-agents]            Deploy either the go master or agents"
   echo ""
-  echo " - clean                                             Cleans up orphaned firewall rules, disks etc"
-  echo " - bootstrap                                         Does all of the above, on a new GCP project"
-  echo " - nuke                                              Destroy everything in one devastating blow"
+  bold "Terraform commands:"
+  echo " - plan            [module]                        Perform a terraform plan"
+  echo " - apply-plan      [module]                        Apply a terraform plan"
+  echo " - destroy         [module] [terraform options]    Destroy one of these, (please be aware of dependencies)"
+  echo ""
+  echo "   Available modules: $(ls terraform | tr -s "\n" " ")"
+  echo ""
+  bold "Application commands:"
+  echo " - configure       [preprod | prod]                Configure an empty kubernetes cluster with basic config"
+  echo " - deploy          [gocd-master | gocd-agents]     Deploy either the go master or agents"
+  echo ""
+  bold "Utility commands:"
+  echo " - bootstrap                                       Does all of the above, on a new GCP project"
+  echo " - nuke                                            Destroy everything in one devastating blow"
+  echo " - clean                                           Cleans up orphaned firewall rules, disks etc"
   echo ""
   exit 1
 }
@@ -135,26 +143,6 @@ function ensure_ssh_key {
   fi
 }
 
-function ensure_gcloud_configuration {
-  bold "Validating gcloud configuration..."
-  if ! gcloud config list 2>/dev/null | grep "$GCP_PROJECT_NAME" &>/dev/null; then
-    gcloud config set compute/region "$TARGET_REGION"
-    gcloud config set compute/zone "$TARGET_ZONE_A"
-    gcloud config set project "$GCP_PROJECT_NAME"
-  else 
-    echo " + $GCP_PROJECT_NAME"
-  fi
-  echo ""
-  bold "Validating authentication status..."
-  if gcloud auth list 2>&1 | grep "No credentialed accounts." &>/dev/null; then
-    gcloud auth login 
-    gcloud auth application-default login
-  else
-    echo " + $(gcloud auth list 2>/dev/null | grep ACTIVE | awk '{print $2}')"
-  fi
-  echo ""
-}
-
 function ensure_in_docker {
   if [ ! -f "/.dockerenv" ]; then
     bold "You are not running inside docker!  I really think you should."
@@ -204,12 +192,13 @@ function deploy_gocd_agent {
   echo ""
   bold "Deploying gocd preprod agents..."
   export GOCD_AGENT_ENV=preprod
+  export AGENT_ADDITIONAL_ENV=",integration,infrastructure"
   pdata app deploy "$ROOT/kubernetes/agent.pod.yml"
-
 
   echo ""
   bold "Deploying gocd prod agents..."
   export GOCD_AGENT_ENV=prod
+  export AGENT_ADDITIONAL_ENV=",infrastructure"
   pdata app deploy "$ROOT/kubernetes/agent.pod.yml"
 
   echo ""
@@ -218,33 +207,33 @@ function deploy_gocd_agent {
 
 function plan_build {
   bold "Planning the build..."
-  $ROOT/scripts/infra plan "$env"
+  $ROOT/scripts/infra plan "$1"
 }
 
 function plan_destroy {
   bold "Planning the destruction..."
-  $ROOT/scripts/infra plan_destroy "$env"
+  $ROOT/scripts/infra plan_destroy $* 
 }
 
 function terraform_apply {
   bold "Applying terraform plan..."
-  $ROOT/scripts/infra apply "$env"
+  $ROOT/scripts/infra apply "$1"
 }
 
 function do_kube_environment {
   check_presence "$env"
   bold Configuring env...
-  $ROOT/scripts/configure-env "$env"
+  $ROOT/scripts/configure-env "$*"
 }
 
 function do_infra {
   env=$1
   check_presence "$env"
-  plan_build
+  plan_build "$env"
   confirm
-  terraform_apply
+  terraform_apply "$env"
   if [ "$env" = "preprod" ] || [ "$env" = "prod" ]; then
-    do_kube_environment
+    do_kube_environment "$env"
   fi
 }
 
@@ -261,12 +250,27 @@ function do_deploy {
   fi
 }
 
-function do_infra_destroy {
+function do_kube_destroy {
   env=$1
   check_presence "$env"
-  plan_destroy
+  acquire_credentials_for_cluster "${STACK_NAME}-${env}"
+  echo "Deleting all namespaces and resources in ${STACK_NAME}-${env}"
+  for ns in $(kubectl get namespaces --no-headers | awk '{print $1}'); do
+    if [ ! "$ns" = "kube-system" ]; then
+      kube --namespace="$ns" delete ingress --all --cascade=true --now
+      kube --namespace="$ns" delete services --all --cascade=true --now
+      kube --namespace="$ns" delete statefulsets --all --cascade=true --now
+      kube --namespace="$ns" delete deployments --all --cascade=true --now
+    fi
+  done
+}
+
+function do_infra_destroy {
+  env=$1
+  check_presence $env
+  plan_destroy $*
   confirm
-  terraform_apply
+  terraform_apply "$env"
 }
 
 function do_infra_cleanup {
@@ -276,6 +280,7 @@ function do_infra_cleanup {
 
 command="${1:-}"
 env="${2:-}"
+args="${@:3}"
 
 export KUBECTL_NAMESPACE=default
 mkdir -p .tmp
@@ -287,16 +292,23 @@ ensure_environment_variables
 ensure_gcloud_configuration
 
 case "$command" in
-  build)
-    do_infra "$env"
+  plan)
+    plan_build "$env"
     exit 0
+    ;;
+  apply-plan)
+    terraform_apply "$env"    
     ;;
   deploy)
     do_deploy "$env"
     exit 0
     ;;
   destroy)
-    do_infra_destroy "$env"
+    if [ "$env" = "preprod" ] || [ "$env" = "prod" ]; then
+      do_kube_destroy "$env"
+    fi
+    do_infra_destroy "$env" "$args"
+    do_infra_cleanup
     exit 0
     ;;
   clean) 
@@ -311,10 +323,10 @@ case "$command" in
     ;;
   bootstrap)
     ensure_cluster_doesnt_exist
-    do_infra "other"
+    do_infra "gocd"
     do_infra "networking"
     do_infra "preprod"
-    do_infra "prod"
+    # do_infra "prod"
     do_deploy "gocd-master"
     do_deploy "gocd-agents"
     echo ""
@@ -322,11 +334,15 @@ case "$command" in
     exit 0
     ;;
   nuke)
+    do_kube_destroy "prod"
+    do_kube_destroy "preprod"
     do_infra_destroy "prod"
     do_infra_destroy "preprod"
     do_infra_cleanup
     do_infra_destroy "networking"
-    do_infra_destroy "other"
+    # do_infra_destroy "gocd"
+    echo "[gocd] has been excluded, as this contains your gocd config"
+    echo "in order to delete that, manually run destroy gocd"
     echo ""
     bold "Nuke complete."
     exit 0

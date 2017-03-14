@@ -4,16 +4,6 @@ provider "google" {
   region       = "${var.target_region}"
 }
 
-resource "google_compute_address" "gocd" {
-  name   = "${var.stack_name}-gocd"
-  region = "${var.target_region}"
-}
-
-resource "google_compute_address" "preprod" {
-  name   = "${var.stack_name}-preprod"
-  region = "${var.target_region}"
-}
-
 module "container" {
   source = "../modules/container"
   env = "preprod"
@@ -25,4 +15,11 @@ module "container" {
   target_region = "${var.target_region}"
   target_zone_a = "${var.target_zone_a}"
   target_zone_b = "${var.target_zone_b}"
+}
+
+module "ips" {
+  source = "../modules/ip"
+  env = "preprod"
+  stack_name = "${var.stack_name}"
+  target_region = "${var.target_region}"
 }

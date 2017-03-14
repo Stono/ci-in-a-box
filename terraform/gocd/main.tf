@@ -17,3 +17,8 @@ resource "google_compute_disk" "gocd-master-config" {
   zone  = "${var.target_zone_a}"
   size  = "1"
 }
+
+resource "google_compute_address" "gocd" {
+  name   = "${var.stack_name}-gocd"
+  region = "${var.target_region}"
+}

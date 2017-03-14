@@ -45,7 +45,7 @@ function plan {
 
 function plan_destroy {
   update_terraform_modules
-  plan_and_save "-destroy"
+  plan_and_save "-destroy $2"
 }
 
 function apply {
@@ -60,7 +60,7 @@ function check_presence {
 
 command="${1:-}"
 env="${2:-}"
-
+args="${@:3}"
 check_presence $env
 init 
 #tf remote pull
@@ -71,7 +71,7 @@ case "$command" in
     exit 0
     ;;
   plan_destroy)
-    plan_destroy $env
+    plan_destroy $env $args
     exit 0
     ;;
   apply)

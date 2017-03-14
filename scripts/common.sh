@@ -146,17 +146,41 @@ check_presence() {
   fi
 }
 
+function ensure_gcloud_configuration {
+  bold "Validating gcloud configuration..."
+  if ! gcloud config list 2>/dev/null | grep "$GCP_PROJECT_NAME" &>/dev/null; then
+    gcloud config set compute/region "$TARGET_REGION"
+    gcloud config set compute/zone "$TARGET_ZONE_A"
+    gcloud config set project "$GCP_PROJECT_NAME"
+  else 
+    echo " + $GCP_PROJECT_NAME"
+  fi
+  echo ""
+  bold "Validating authentication status..."
+  if gcloud auth list 2>&1 | grep "No credentialed accounts." &>/dev/null; then
+    gcloud auth login 
+    gcloud auth application-default login
+  else
+    echo " + $(gcloud auth list 2>/dev/null | grep ACTIVE | awk '{print $2}')"
+  fi
+  echo ""
+}
+
 function abs_path {
   echo $(cd $1 && echo $PWD)
 }
-
-ROOT=$(abs_path "$(dirname $0)/")
-if [ ! -f "$ROOT/start" ]; then
-  ROOT=$(abs_path "$(dirname $0)/../")
-fi
-if [ ! -f "$ROOT/start" ]; then
-  echo "ERROR: Unable to locate project root!"
-  exit 1
+called=$_
+if [[ $called != $0 ]]; then 
+  ROOT="$(abs_path $(dirname ${BASH_SOURCE[0]})/../)"
+else
+  ROOT=$(abs_path "$(dirname $0)/")
+  if [ ! -f "$ROOT/start" ]; then
+    ROOT=$(abs_path "$(dirname $0)/../")
+  fi
+  if [ ! -f "$ROOT/start" ]; then
+    echo "ERROR: Unable to locate project root!"
+    exit 1
+  fi
 fi
 
 source "$ROOT/.env.default"

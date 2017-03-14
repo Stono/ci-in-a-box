@@ -2,10 +2,7 @@ gocd.master
 gocd.agent
 nginx
 .terraform
-.tmp
-tmp
-.ssh
-.gnupg
 *.swp
-.env
 .docker
+.tmp
+.env

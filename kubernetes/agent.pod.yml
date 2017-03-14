@@ -57,4 +57,4 @@ spec:
         - name: GO_SERVER
           value: gocd-master
         - name: AGENT_ENVIRONMENTS
-          value: "go,{{ENV.GOCD_AGENT_ENV}},{{ENV.STACK_NAME}}"
+          value: "go,{{ENV.GOCD_AGENT_ENV}},{{ENV.STACK_NAME}}{{ENV.AGENT_ADDITIONAL_ENV}}"
