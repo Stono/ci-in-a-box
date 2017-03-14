@@ -253,16 +253,22 @@ function do_deploy {
 function do_kube_destroy {
   env=$1
   check_presence "$env"
+  set +e
   acquire_credentials_for_cluster "${STACK_NAME}-${env}"
-  echo "Deleting all namespaces and resources in ${STACK_NAME}-${env}"
-  for ns in $(kubectl get namespaces --no-headers | awk '{print $1}'); do
-    if [ ! "$ns" = "kube-system" ]; then
-      kube --namespace="$ns" delete ingress --all --cascade=true --now
-      kube --namespace="$ns" delete services --all --cascade=true --now
-      kube --namespace="$ns" delete statefulsets --all --cascade=true --now
-      kube --namespace="$ns" delete deployments --all --cascade=true --now
-    fi
-  done
+  if [ ! "$?" = "0" ]; then
+    echo " - Unable to get cluster credentials"
+  else
+    set -e
+    echo "Deleting all namespaces and resources in ${STACK_NAME}-${env}"
+    for ns in $(kubectl get namespaces --no-headers | awk '{print $1}'); do
+      if [ ! "$ns" = "kube-system" ]; then
+        kube --namespace="$ns" delete ingress --all --cascade=true --now
+        kube --namespace="$ns" delete services --all --cascade=true --now
+        kube --namespace="$ns" delete statefulsets --all --cascade=true --now
+        kube --namespace="$ns" delete deployments --all --cascade=true --now
+      fi
+    done
+  fi
 }
 
 function do_infra_destroy {
