@@ -41,6 +41,8 @@ Essentially a command line interface for automating a bunch of _low value work_.
 
 ... Just kidding about the last one, it won't make you a brew.  But with all this free time on your hands, you can totally make your own!
 
+There are a few niggles I still need to sort out.  Check them out [here](https://github.com/Stono/ci-in-a-box/issues) on the issues page.
+
 ## Too much network jargon, paint me a picture?
 Sure.
 
