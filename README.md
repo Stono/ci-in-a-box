@@ -3,7 +3,7 @@
 
 Welcome to __ci in a box__!  
 
-From an empty GCP project to a EU dual-DC HA kubernetes CI/CD stack in about 6 minutes.
+From an empty GCP project to a dual-DC HA kubernetes CI/CD stack in about 6 minutes.
 
 ## What is this?
 It is a docker container, that deploys, builds and configures Kubernetes and GoCD on GKE (GCP) in a configuration that allows for CI/CD of docker applications.  It's also a front runner in the `how many times can i say docker in a minute` competition.
@@ -120,7 +120,7 @@ Updated property [core/project].
 
  + Setup Complete!
 
-Welcome to the all in one GCP EU Kubernetes deployment script.
+Welcome to the all in one GCP Kubernetes deployment script.
 
 Terraform commands:
  - plan            [module]                        Perform a terraform plan
