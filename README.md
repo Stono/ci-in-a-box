@@ -122,14 +122,22 @@ Updated property [core/project].
 
 Welcome to the all in one GCP EU Kubernetes deployment script.
 
-Usage: start <command>
- - build      [preprod | prod | networking]  Plan and Build one of these
- - destroy    [preprod | prod | networking]  Destroy one of these
- - configure  [preprod | prod]               Configure one of these
- - deploy     [gocd-master | gocd-agents]    Deploy either the go master or agents
+Terraform commands:
+ - plan            [module]                        Perform a terraform plan
+ - apply-plan      [module]                        Apply a terraform plan
+ - destroy         [module] [terraform options]    Destroy one of these, (please be aware of dependencies)
 
- - bootstrap                                 Does all of the above, on a new GCP project
- - nuke                                      Destroy everything in one devastating blow
+   Available modules: gocd modules networking preprod prod 
+
+Application commands:
+ - configure       [preprod | prod]                Configure an empty kubernetes cluster with basic config
+ - deploy          [gocd-master | gocd-agents]     Deploy either the go master or agents
+
+Utility commands:
+ - bootstrap                                       Does all of the above, on a new GCP project
+ - nuke                                            Destroy everything in one devastating blow
+ - clean                                           Cleans up orphaned firewall rules, disks etc
+
 ```
 
 If you're on a fresh setup, just run `docker-compose run --rm ciinabox bootstrap`, wait a few minutes and then crack on building the stuff that matters.  You'll get something like this:
