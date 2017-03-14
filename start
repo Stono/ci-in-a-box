@@ -332,7 +332,7 @@ case "$command" in
     do_infra "gocd"
     do_infra "networking"
     do_infra "preprod"
-    # do_infra "prod"
+    do_infra "prod"
     do_deploy "gocd-master"
     do_deploy "gocd-agents"
     echo ""

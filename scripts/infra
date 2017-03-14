@@ -63,7 +63,7 @@ env="${2:-}"
 args="${@:3}"
 check_presence $env
 init 
-#tf remote pull
+tf remote pull
 
 case "$command" in
   plan)
@@ -76,7 +76,7 @@ case "$command" in
     ;;
   apply)
     apply
-    #tf remote push
+    tf remote push
     exit 0
     ;;
   *)

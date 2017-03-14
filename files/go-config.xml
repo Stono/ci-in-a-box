@@ -1,0 +1,60 @@
+<?xml version="1.0" encoding="utf-8"?>
+<cruise xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="cruise-config.xsd" schemaVersion="89">
+  <server artifactsdir="artifacts" agentAutoRegisterKey="testingtesting" commandRepositoryLocation="default" serverId="8f096d74-c3c2-47ca-98d0-98b2c0bc3c66">
+    <security>
+      <passwordFile path="/etc/go-users" />
+    </security>
+  </server>
+  <pipelines group="preprod">
+    <pipeline name="simple-node-app">
+      <environmentvariables>
+        <variable name="GCP_PROJECT_NAME">
+          <value>peopledata-product-team</value>
+        </variable>
+        <variable name="GCP_STATIC_IP">
+          <value>35.187.96.148</value>
+        </variable>
+      </environmentvariables>
+      <materials>
+        <git url="https://github.com/Stono/simple-node-app.git" />
+      </materials>
+      <stage name="build">
+        <jobs>
+          <job name="build">
+            <tasks>
+              <exec command="npm">
+                <arg>run</arg>
+                <arg>build</arg>
+              </exec>
+              <exec command="npm">
+                <arg>run</arg>
+                <arg>push</arg>
+                <runif status="passed" />
+              </exec>
+            </tasks>
+          </job>
+        </jobs>
+      </stage>
+      <stage name="test">
+        <jobs>
+          <job name="test">
+            <tasks>
+              <exec command="npm">
+                <arg>run</arg>
+                <arg>pull</arg>
+                <runif status="passed" />
+              </exec>
+              <exec command="npm">
+                <arg>run</arg>
+                <arg>test</arg>
+                <runif status="passed" />
+              </exec>
+            </tasks>
+          </job>
+        </jobs>
+      </stage>
+    </pipeline>
+  </pipelines>
+  <agents>
+  </agents>
+</cruise>
