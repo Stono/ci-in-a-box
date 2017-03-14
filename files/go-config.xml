@@ -9,7 +9,7 @@
     <pipeline name="simple-node-app">
       <environmentvariables>
         <variable name="GCP_PROJECT_NAME">
-          <value>peopledata-product-team</value>
+          <value>your-gcp-project</value>
         </variable>
         <variable name="GCP_STATIC_IP">
           <value>35.187.96.148</value>
