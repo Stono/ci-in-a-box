@@ -55,17 +55,14 @@ function ensure_tools {
 
   EXPECTED_TERRAFORM=0.8.7
   EXPECTED_KUBECTL=1.5.3
-  EXPECTED_GCLOUD=146.0.0
 
   echo ""
   bold "Checking tool versions..."
   ACTUAL_TERRAFORM=$(terraform --version | head -n 1 | awk '{print $2}' | cut -c2-)
   ACTUAL_KUBECTL=$(kubectl version --client --short | awk '{print $3}' | cut -c2-)
-  ACTUAL_GCLOUD=$(gcloud --version | grep SDK | awk '{print $4}')
 
   version_check "$ACTUAL_KUBECTL" "$EXPECTED_KUBECTL" "kubectl"
   version_check "$ACTUAL_TERRAFORM" "$EXPECTED_TERRAFORM" "terraform"
-  version_check "$ACTUAL_GCLOUD" "$EXPECTED_GCLOUD" "gcloud sdk"
   echo ""
 }
 
