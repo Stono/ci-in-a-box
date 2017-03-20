@@ -5,7 +5,6 @@ MAINTAINER Karl Stoney <me@karlstoney.com>
 ENV KUBECTL_VERSION 1.5.3
 ENV TERRAFORM_VERSION 0.8.7
 ENV PEOPLEDATA_CLI_VERSION 1.2.36
-ENV CLOUD_SDK_VERSION 146.0.0
 
 # Get nodejs repos
 RUN curl --silent --location https://rpm.nodesource.com/setup_7.x | bash - 
@@ -18,7 +17,7 @@ RUN mkdir -p /etc/gcloud/keys
 
 # Install packages 
 RUN yum -y -q update && \
-    yum -y -q install google-cloud-sdk-$CLOUD_SDK_VERSION nodejs wget httpd-tools \
+    yum -y -q install google-cloud-sdk nodejs wget httpd-tools \
               python-openssl build-essential libssl-dev g++ unzip which openssh && \
     yum -y -q clean all
 
