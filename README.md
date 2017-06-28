@@ -5,6 +5,8 @@ Welcome to __ci in a box__!
 
 From an empty GCP project to a dual-DC HA kubernetes CI/CD stack in about 6 minutes.
 
+**IMPORTANT** I am focusing my efforts on a newer, better version of this.  Please go to https://github.com/Stono/kube-gocd
+
 ## What is this?
 It is a docker container, that deploys, builds and configures Kubernetes and GoCD on GKE (GCP) in a configuration that allows for CI/CD of docker applications.  It's also a front runner in the `how many times can i say docker in a minute` competition.
 
